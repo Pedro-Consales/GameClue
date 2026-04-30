@@ -11,6 +11,8 @@ public class DadoTest {
 		
 		Dado dado = new Dado();
 		
+		dado.jogarDados();
+		
 		
 	}
 
