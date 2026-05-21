@@ -4,12 +4,19 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JCheckBox;
 import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.BoxLayout;
+import javax.swing.Box;
 
 import javax.imageio.ImageIO;
 
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Component;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -24,157 +31,239 @@ public class TelaSelecao extends JFrame {
     public TelaSelecao() {
 
         setTitle("Seleção de Personagens");
-
         setSize(1400, 1050);
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         setLocationRelativeTo(null);
 
         add(new PainelSelecao());
 
         setVisible(true);
     }
+
+    public static void main(String[] args) {
+        new TelaSelecao();
+    }
 }
 
+// ===========================================
+// PAINEL PRINCIPAL
+// Equivalente ao <body> no HTML
+// display: flex; flex-direction: column;
+// background-color: #1a242b;
+// ===========================================
 class PainelSelecao extends JPanel {
 
-    private Image  img1, img2, img3, img4, img5, img6;
-
-    private JCheckBox scarlet;
-    private JCheckBox mustard;
-    private JCheckBox white;
-    private JCheckBox green;
-    private JCheckBox peacock;
-    private JCheckBox plum;
-
     private JButton botaoJogar;
-
     private ArrayList<String> selecionados = new ArrayList<>();
+    private JLabel labelErro;
+    private JLabel labelSuccess;
+
+    public void printJogadoresSelecionados(ArrayList<String> selecionados) {
+    	
+    	System.out.println("=== JOGADORES SELECIONADOS ===\n");
+    	for (String s : selecionados) {
+            System.out.println(s);
+        }
+    	
+    }
 
     public PainelSelecao() {
 
-        setLayout(null);
 
-        try {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+
+        setBackground(new Color(26, 36, 43));
+
+
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(40, 0, 40, 0));
+
+        // ===========================================
+        // Label TÍTULO
+       
+        JLabel titulo = new JLabel("Selecione os personagens a serem controlados");
+        titulo.setFont(new Font("Arial", Font.BOLD, 28));
+        titulo.setForeground(Color.WHITE);
+
+        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        add(titulo);
+
+        add(Box.createRigidArea(new Dimension(0, 40)));
+
+        // ===========================================
+        // JPanel (Caixa) DE SELEÇÃO
+        // 
+        // ===========================================
+        JPanel painelCards = new JPanel();
+
+        painelCards.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
+
+        painelCards.setBackground(new Color(26, 36, 43));
+
     
+        String[] nomes = {"Scarlet", "Mustard", "White", "Green", "Peacock", "Plum"};
 
-            img1 = ImageIO.read(new File("GameClue/Imagens/Suspeitos/Scarlet.jpg"));
-            img2 = ImageIO.read(new File("GameClue/Imagens/Suspeitos/Mustard.jpg"));
-            img3 = ImageIO.read(new File("GameClue/Imagens/Suspeitos/White.jpg"));
-            img4 = ImageIO.read(new File("GameClue/Imagens/Suspeitos/Green.jpg"));
-            img5 = ImageIO.read(new File("GameClue/Imagens/Suspeitos/Peacock.jpg"));
-            img6 = ImageIO.read(new File("GameClue/Imagens/Suspeitos/Plum.jpg"));
+        for (String nome : nomes) {
 
-        } catch (IOException e) {
+            String caminho = "Imagens/Suspeitos/" + nome + ".jpg";
 
-            System.out.println("Erro ao carregar imagens");
+            painelCards.add(criarCard(nome, caminho));
         }
 
-        //-----------------------------------
-        // CHECKBOXES
-        //-----------------------------------
+        add(painelCards);
 
-        scarlet = new JCheckBox("Scarlet");
-        mustard = new JCheckBox("Mustard");
-        white = new JCheckBox("White");
-        green = new JCheckBox("Green");
-        peacock = new JCheckBox("Peacock");
-        plum = new JCheckBox("Plum");
+        add(Box.createRigidArea(new Dimension(0, 30)));
 
-        scarlet.setBounds(1050, 600, 200, 30);
-        mustard.setBounds(1050, 640, 200, 30);
-        white.setBounds(1050, 680, 200, 30);
-        green.setBounds(1050, 720, 200, 30);
-        peacock.setBounds(1050, 760, 200, 30);
-        plum.setBounds(1050, 800, 200, 30);
-
-        add(scarlet);
-        add(mustard);
-        add(white);
-        add(green);
-        add(peacock);
-        add(plum);
-
-        //-----------------------------------
-        // BOTÃO JOGAR
-        //-----------------------------------
-
+        // ===========================================
+        // Caixa do BOTÃO
+        // ===========================================
         botaoJogar = new JButton("JOGAR");
-        botaoJogar.setBounds(1050, 850, 200, 50);
+        botaoJogar.setPreferredSize(new Dimension(200, 50));
+        botaoJogar.setMinimumSize(new Dimension(200, 50));
+        botaoJogar.setMaximumSize(new Dimension(200, 50));
+        botaoJogar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        
+        labelErro = new JLabel("");
+        labelErro.setForeground(Color.RED);
+        labelErro.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        labelSuccess = new JLabel("");
+        labelSuccess.setForeground(Color.GREEN);
+        labelSuccess.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        add(labelErro);
+        add(labelSuccess);
+        add(Box.createRigidArea(new Dimension(0, 10))); 
+        
+        
+        
 
         add(botaoJogar);
 
-        //-----------------------------------
-        // EVENTOS CHECKBOX
-        //-----------------------------------
-
-        scarlet.addActionListener(e -> atualizar("Scarlet", scarlet.isSelected()));
-        mustard.addActionListener(e -> atualizar("Mustard", mustard.isSelected()));
-        white.addActionListener(e -> atualizar("White", white.isSelected()));
-        green.addActionListener(e -> atualizar("Green", green.isSelected()));
-        peacock.addActionListener(e -> atualizar("Peacock", peacock.isSelected()));
-        plum.addActionListener(e -> atualizar("Plum", plum.isSelected()));
-
-        //-----------------------------------
-        // BOTÃO JOGAR
-        //-----------------------------------
-
+        // ===========================================
+        // EVENTO BOTÃO JOGAR
+        // ===========================================
         botaoJogar.addActionListener(new ActionListener() {
-
             public void actionPerformed(ActionEvent e) {
-
-                System.out.println("=== JOGADORES SELECIONADOS ===");
-
-                for (String s : selecionados) {
-                    System.out.println(s);
+                
+                if (selecionados.size() < 2) {
+                	
+                	labelErro.setText("Mínimo de 2 personagens para jogar!");
+                     
+                	
+                	printJogadoresSelecionados(selecionados);
+                	System.out.printf("\n\nQuantidade de jogadores inválida, precisa ter no mínimo 2 jogadores\n");
+                	System.out.println("==============================\n\n");
+                	
+                	return;
                 }
-
-                System.out.println("==============================");
+                
+                if (selecionados.size() > 6) { //Caso impossível de cair já que só tem 6 personagens, verificação por segurança
+                    labelErro.setText("Máximo de 6 personagens!");
+                    
+                    printJogadoresSelecionados(selecionados);
+                	System.out.printf("\n\nQuantidade de jogadores inválida, precisa ter no máximo 6 jogadores\n");
+                	System.out.println("==============================\n\n");
+                    
+                    return;
+                }
+                
+                labelErro.setText("");
+                labelSuccess.setText("Jogadores Selecionados: " + selecionados);
+                System.out.println("Jogadores Selecionados: " + selecionados);
+                
             }
         });
     }
 
+    // ===========================================
+    // MÉTODO CRIAR CARD
+    // ===========================================
+    private JPanel criarCard(String nome, String caminhoImagem) {
+
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(new Color(40, 50, 60));
+        card.setPreferredSize(new Dimension(180, 310));
+
+        // ===========================================
+        // Caixa IMAGEM
+        // ===========================================
+        PainelImagem painelImg = new PainelImagem(caminhoImagem, 180, 260);
+        painelImg.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // ===========================================
+        // Caixa CHECKBOX
+        // ===========================================
+        JCheckBox check = new JCheckBox(nome);
+        check.setBackground(new Color(40, 50, 60));
+        check.setForeground(Color.WHITE);
+        check.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Evento sem lambda
+        check.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                atualizar(nome, check.isSelected());
+            }
+        });
+
+        card.add(painelImg);
+        card.add(check);
+
+        return card;
+    }
+
+    // Atualiza lista de selecionados
     private void atualizar(String nome, boolean selecionado) {
-
         if (selecionado) {
-
             if (!selecionados.contains(nome)) {
                 selecionados.add(nome);
             }
-
         } else {
-
             selecionados.remove(nome);
         }
     }
+}
+
+// ===========================================
+// PAINEL DE IMAGEM
+// em vez de JLabel + ImageIcon,
+// criamos um JPanel que sobrescreve o
+// paintComponent() e usa drawImage()
+// ===========================================
+class PainelImagem extends JPanel {
+
+    private Image imagem;
+    private int largura;
+    private int altura;
+
+    public PainelImagem(String caminho, int largura, int altura) {
+
+        this.largura = largura;
+        this.altura = altura;
+
+       
+        setPreferredSize(new Dimension(largura, altura));
+        setMaximumSize(new Dimension(largura, altura));
+        setMinimumSize(new Dimension(largura, altura));
+
+        try {
+            imagem = ImageIO.read(new File(caminho));
+        } catch (IOException e) {
+            System.out.println("Erro ao carregar: " + caminho);
+        }
+    }
+
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-
-        
-        setBackground(new Color(26, 36, 43));
-        
-
-        int w = 310;
-        int h = 490;
-
-        int x = 20;
-        int y = 10;
-
-        int gapX = 20;
-        int gapY = 20;
-
-        g.drawImage(img1, x, y, w, h, null);
-        g.drawImage(img2, x + (w + gapX), y, w, h, null);
-        g.drawImage(img3, x + 2 * (w + gapX), y, w, h, null);
-        g.drawImage(img4, x + 3 * (w + gapX), y, w, h, null);
-
-        int y2 = y + h + gapY;
-
-        g.drawImage(img5, x, y2, w, h, null);
-        g.drawImage(img6, x + (w + gapX), y2, w, h, null);
+        if (imagem != null) {
+            // drawImage() — obrigatório
+            g.drawImage(imagem, 0, 0, largura, altura, null);
+        }
     }
 }
