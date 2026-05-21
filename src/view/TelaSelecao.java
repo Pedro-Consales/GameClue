@@ -1,5 +1,6 @@
 package view;
 
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JCheckBox;
@@ -25,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import javax.swing.SwingUtilities;
+
 
 public class TelaSelecao extends JFrame {
 
@@ -173,6 +176,9 @@ class PainelSelecao extends JPanel {
                 labelErro.setText("");
                 labelSuccess.setText("Jogadores Selecionados: " + selecionados);
                 System.out.println("Jogadores Selecionados: " + selecionados);
+                
+                new TelaTabuleiro(selecionados);
+                ((JFrame) SwingUtilities.getWindowAncestor(PainelSelecao.this)).dispose();
                 
             }
         });
