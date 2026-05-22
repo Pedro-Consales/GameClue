@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import javax.imageio.ImageIO;
+import javax.swing.Timer;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -13,6 +14,14 @@ import java.awt.AlphaComposite;
 
 import java.io.File;
 import java.io.IOException;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.BoxLayout;
+import javax.swing.Box;
+import java.awt.Font;
+import java.awt.Dimension;
+import java.awt.Component;
 
 public class TelaTabuleiro extends JFrame {
 
@@ -43,6 +52,13 @@ class PainelTabuleiro extends JPanel {
 
     private Image imagemTabuleiro;
     private ArrayList<String> jogadores; // ← adicionado
+    
+    private Image[] imagensDado = new Image[6];
+    private int dadoAtual = 0;
+    private int resultadoDado = 0;
+    private int frameAnimacao = 0;
+    private boolean animando = false;
+    private Timer timerDado;
 
     private static final int OFFSET_X = 110;
     private static final int OFFSET_Y = 124;
@@ -50,7 +66,9 @@ class PainelTabuleiro extends JPanel {
     private static final int CELL_H = 66;
 
     public PainelTabuleiro(ArrayList<String> jogadores) {
+    	
         this.jogadores = jogadores; // ← adicionado
+        
         try {
             imagemTabuleiro = ImageIO.read(
                 new File("Imagens/Tabuleiros/Tabuleiro-Original.JPG")
@@ -58,6 +76,52 @@ class PainelTabuleiro extends JPanel {
         } catch (IOException e) {
             System.out.println("Erro ao carregar tabuleiro");
         }
+        
+     // Carrega as 6 faces do dado
+        for (int i = 0; i < 6; i++) {
+            try {
+                imagensDado[i] = ImageIO.read(
+                    new File("Imagens/Tabuleiros/dado" + (i + 1) + ".jpg")
+                );
+            } catch (IOException e) {
+                System.out.println("Erro ao carregar dado" + (i + 1));
+            }
+        }
+        
+        
+        setLayout(null);
+
+	     // Painel overlay no centro (onde fica o CLUE)
+	     JPanel painelDados = new JPanel();
+	     painelDados.setLayout(new BoxLayout(painelDados, BoxLayout.Y_AXIS));
+	     painelDados.setOpaque(false);                    
+	     painelDados.setBounds(540, 345, 220, 200); // posição aproximada do centro
+
+	
+	     // Label para exibir o dado (imagem)
+	     JLabel labelDado = new JLabel();
+	     labelDado.setAlignmentX(Component.CENTER_ALIGNMENT);
+	     labelDado.setPreferredSize(new Dimension(100, 100));
+	
+	     // Label para exibir o número
+	     JLabel labelNumero = new JLabel("?");
+	     labelNumero.setForeground(Color.WHITE);
+	     labelNumero.setFont(new Font("Arial", Font.BOLD, 24));
+	     labelNumero.setAlignmentX(Component.CENTER_ALIGNMENT);
+	
+	     // Botão rolar dados
+	     JButton botaoDados = new JButton("Rolar Dados");
+	     botaoDados.setAlignmentX(Component.CENTER_ALIGNMENT);
+	
+	     painelDados.add(Box.createVerticalGlue());
+	     painelDados.add(labelDado);
+	     painelDados.add(Box.createRigidArea(new Dimension(0, 10)));
+	     painelDados.add(labelNumero);
+	     painelDados.add(Box.createRigidArea(new Dimension(0, 10)));
+	     painelDados.add(botaoDados);
+	     painelDados.add(Box.createVerticalGlue());
+	
+	     add(painelDados);
     }
 
     @Override
