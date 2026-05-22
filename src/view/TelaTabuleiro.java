@@ -19,9 +19,14 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
+
 import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.Component;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class TelaTabuleiro extends JFrame {
 
@@ -36,14 +41,12 @@ public class TelaTabuleiro extends JFrame {
 
     public static void main(String[] args) {
         ArrayList<String> jogadores = new ArrayList<>();
-        
         jogadores.add("Scarlet");
         jogadores.add("Mustard");
         jogadores.add("White");
         jogadores.add("Green");
         jogadores.add("Peacock");
         jogadores.add("Plum");
-        
         new TelaTabuleiro(jogadores);
     }
 }
@@ -51,8 +54,8 @@ public class TelaTabuleiro extends JFrame {
 class PainelTabuleiro extends JPanel {
 
     private Image imagemTabuleiro;
-    private ArrayList<String> jogadores; // ← adicionado
-    
+    private ArrayList<String> jogadores;
+
     private Image[] imagensDado = new Image[6];
     private int dadoAtual = 0;
     private int resultadoDado = 0;
@@ -66,9 +69,12 @@ class PainelTabuleiro extends JPanel {
     private static final int CELL_H = 66;
 
     public PainelTabuleiro(ArrayList<String> jogadores) {
-    	
-        this.jogadores = jogadores; // ← adicionado
-        
+
+        this.jogadores = jogadores;
+
+        // -----------------------------------
+        // CARREGA TABULEIRO
+        // -----------------------------------
         try {
             imagemTabuleiro = ImageIO.read(
                 new File("Imagens/Tabuleiros/Tabuleiro-Original.JPG")
@@ -76,8 +82,10 @@ class PainelTabuleiro extends JPanel {
         } catch (IOException e) {
             System.out.println("Erro ao carregar tabuleiro");
         }
-        
-     // Carrega as 6 faces do dado
+
+        // -----------------------------------
+        // CARREGA FACES DO DADO
+        // -----------------------------------
         for (int i = 0; i < 6; i++) {
             try {
                 imagensDado[i] = ImageIO.read(
@@ -87,41 +95,92 @@ class PainelTabuleiro extends JPanel {
                 System.out.println("Erro ao carregar dado" + (i + 1));
             }
         }
-        
-        
+
         setLayout(null);
 
-	     // Painel overlay no centro (onde fica o CLUE)
-	     JPanel painelDados = new JPanel();
-	     painelDados.setLayout(new BoxLayout(painelDados, BoxLayout.Y_AXIS));
-	     painelDados.setOpaque(false);                    
-	     painelDados.setBounds(540, 345, 220, 200); // posição aproximada do centro
+        // -----------------------------------
+        // PAINEL OVERLAY DO DADO
+        // Transparente, posicionado sobre o CLUE
+        // -----------------------------------
+        JPanel painelDados = new JPanel();
+        painelDados.setLayout(new BoxLayout(painelDados, BoxLayout.Y_AXIS));
+        painelDados.setOpaque(false);
+        painelDados.setBounds(540, 345, 220, 200);
 
-	
-	     // Label para exibir o dado (imagem)
-	     JLabel labelDado = new JLabel();
-	     labelDado.setAlignmentX(Component.CENTER_ALIGNMENT);
-	     labelDado.setPreferredSize(new Dimension(100, 100));
-	
-	     // Label para exibir o número
-	     JLabel labelNumero = new JLabel("?");
-	     labelNumero.setForeground(Color.WHITE);
-	     labelNumero.setFont(new Font("Arial", Font.BOLD, 24));
-	     labelNumero.setAlignmentX(Component.CENTER_ALIGNMENT);
-	
-	     // Botão rolar dados
-	     JButton botaoDados = new JButton("Rolar Dados");
-	     botaoDados.setAlignmentX(Component.CENTER_ALIGNMENT);
-	
-	     painelDados.add(Box.createVerticalGlue());
-	     painelDados.add(labelDado);
-	     painelDados.add(Box.createRigidArea(new Dimension(0, 10)));
-	     painelDados.add(labelNumero);
-	     painelDados.add(Box.createRigidArea(new Dimension(0, 10)));
-	     painelDados.add(botaoDados);
-	     painelDados.add(Box.createVerticalGlue());
-	
-	     add(painelDados);
+        // Label imagem do dado
+        JLabel labelDado = new JLabel();
+        labelDado.setAlignmentX(Component.CENTER_ALIGNMENT);
+        labelDado.setPreferredSize(new Dimension(100, 100));
+
+        // Label número resultado
+        JLabel labelNumero = new JLabel("?");
+        labelNumero.setForeground(Color.WHITE);
+        labelNumero.setFont(new Font("Arial", Font.BOLD, 24));
+        labelNumero.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Botão rolar dados
+        JButton botaoDados = new JButton("Rolar Dados");
+        botaoDados.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // -----------------------------------
+        // EVENTO BOTÃO — sem lambda!
+        // -----------------------------------
+        botaoDados.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                if (animando) return;
+
+                resultadoDado = (int)(Math.random() * 6) + 1;
+                frameAnimacao = 0;
+                animando = true;
+
+                timerDado = new Timer(80, new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+
+                        frameAnimacao++;
+
+                        if (frameAnimacao >= 15) {
+                            // Para no resultado final
+                            animando = false;
+                            dadoAtual = resultadoDado - 1;
+                            labelNumero.setText("Total: " + resultadoDado);
+                            timerDado.stop();
+                        } else {
+                            // Face aleatória durante animação
+                            dadoAtual = (int)(Math.random() * 6);
+                        }
+
+                        // Efeito crescer e diminuir
+                        int tamanho;
+                        if (frameAnimacao < 7) {
+                            tamanho = 60 + frameAnimacao * 8; // cresce
+                        } else {
+                            tamanho = 116 - (frameAnimacao - 7) * 8; // diminui
+                        }
+
+                        // Atualiza imagem com novo tamanho
+                        Image imgRedim = imagensDado[dadoAtual].getScaledInstance(
+                            tamanho, tamanho, Image.SCALE_SMOOTH
+                        );
+                        labelDado.setIcon(new ImageIcon(imgRedim));
+                        labelDado.revalidate();
+                        labelDado.repaint();
+                    }
+                });
+
+                timerDado.start();
+            }
+        });
+
+        painelDados.add(Box.createVerticalGlue());
+        painelDados.add(labelDado);
+        painelDados.add(Box.createRigidArea(new Dimension(0, 10)));
+        painelDados.add(labelNumero);
+        painelDados.add(Box.createRigidArea(new Dimension(0, 10)));
+        painelDados.add(botaoDados);
+        painelDados.add(Box.createVerticalGlue());
+
+        add(painelDados);
     }
 
     @Override
@@ -152,7 +211,7 @@ class PainelTabuleiro extends JPanel {
         desenharHitbox(g2d, escalaX, escalaY, 15, 19, 6,  5);  // Escritório
 
         // -----------------------------------
-        // PIÕES DOS JOGADORES Posições iniciais
+        // PIÕES DOS JOGADORES
         // -----------------------------------
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
@@ -160,7 +219,7 @@ class PainelTabuleiro extends JPanel {
         desenharPiao(g2d, escalaX, escalaY, 0,  15, Color.YELLOW,           "Mustard", jogadores);
         desenharPiao(g2d, escalaX, escalaY, 7,  0,  Color.WHITE,            "White",   jogadores);
         desenharPiao(g2d, escalaX, escalaY, 12, 0,  Color.GREEN,            "Green",   jogadores);
-        desenharPiao(g2d, escalaX, escalaY, 19, 5, Color.BLUE,             "Peacock", jogadores);
+        desenharPiao(g2d, escalaX, escalaY, 19, 5,  Color.BLUE,             "Peacock", jogadores);
         desenharPiao(g2d, escalaX, escalaY, 19, 17, new Color(128, 0, 128), "Plum",    jogadores);
     }
 
@@ -177,17 +236,12 @@ class PainelTabuleiro extends JPanel {
         g2d.fillRect(x, y, w, h);
     }
 
-    // -----------------------------------
-    // Desenha o pião apenas se o personagem
-    // foi selecionado na TelaSelecao
-    // -----------------------------------
     private void desenharPiao(Graphics2D g2d,
                               double escalaX, double escalaY,
                               int col, int lin,
                               Color cor, String nome,
                               ArrayList<String> jogadores) {
 
-        // Só desenha se foi selecionado
         if (!jogadores.contains(nome)) return;
 
         int x = (int) ((OFFSET_X + col * CELL_W) * escalaX);
@@ -195,11 +249,9 @@ class PainelTabuleiro extends JPanel {
         int w = (int) (CELL_W * escalaX);
         int h = (int) (CELL_H * escalaY);
 
-        // Círculo colorido
         g2d.setColor(cor);
         g2d.fillOval(x, y, w, h);
 
-        // Borda preta para destacar
         g2d.setColor(Color.BLACK);
         g2d.drawOval(x, y, w, h);
     }
