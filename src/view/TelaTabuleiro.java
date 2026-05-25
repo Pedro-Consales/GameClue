@@ -272,6 +272,10 @@ class PainelTabuleiro extends JPanel {
 
             int mouseX = e.getX();
             int mouseY = e.getY();
+            System.out.println(
+                        "getX: " + mouseX +
+                        " getY: " + mouseY
+                    );
 
             int col = (mouseX - OFFSET_X) / CELL_W;
             int lin = (mouseY - OFFSET_Y) / CELL_H;
@@ -354,7 +358,7 @@ class PainelTabuleiro extends JPanel {
             g2d.fillRect(x, y, w, h);
         }
         g2d.setColor(Color.BLACK);
-
+/*
         for (int lin = 0; lin < 25; lin++) {
 
             for (int col = 0; col < 25; col++) {
@@ -373,8 +377,8 @@ class PainelTabuleiro extends JPanel {
                     y + 20
                 );
             }
-        }
-    }
+        }*/
+    } 
 
     private void desenharHitbox(Graphics2D g2d,
                                 double escalaX, double escalaY,
