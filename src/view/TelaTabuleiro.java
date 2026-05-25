@@ -79,6 +79,8 @@ class PainelTabuleiro extends JPanel {
     private boolean podeMover = false;
     private int passosDisponiveis = 0;
 
+//Alterar para usar a classe Jogador
+
     private int scarletCol = 6;
     private int scarletLin = 22;
 
