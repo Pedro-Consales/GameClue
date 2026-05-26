@@ -11,53 +11,39 @@ public class ClueModel {
     private int jogadorAtual;
     private int[] ultimoDado;
 
-    // Construtor
     public ClueModel() {
         tabuleiro = new Tabuleiro();
         jogadores = new ArrayList<>();
         dado1 = new Dado();
         dado2 = new Dado();
         jogadorAtual = 0;
+        TabuleiroBuilder.popular(tabuleiro);
     }
 
-    // ----------------------------
-    // 🎲 LANÇAR DADOS
-    // ----------------------------
     public int[] lancarDados() {
         int d1 = dado1.jogarDados();
         int d2 = dado2.jogarDados();
         ultimoDado = new int[]{d1, d2};
         return ultimoDado;
     }
+
     public void setDadosParaTeste(int d1, int d2) {
         ultimoDado = new int[]{d1, d2};
     }
-    // ----------------------------
-    // 🗺️ MAPEAR CASAS (BFS SIMPLES)
-    // ----------------------------
+
     public List<Casa> mapearCasas(int[] dados) {
-
         int passos = dados[0] + dados[1];
-
         Jogador jogador = getJogadorAtual();
         Casa origem = tabuleiro.getCasa(jogador.getPosicao());
-
         Set<Casa> visitadas = new HashSet<>();
         Queue<Casa> fila = new LinkedList<>();
-
         fila.add(origem);
         visitadas.add(origem);
-
         int nivel = 0;
-
         while (nivel < passos) {
-
             int tamanho = fila.size();
-
             for (int i = 0; i < tamanho; i++) {
-
                 Casa atual = fila.poll();
-
                 for (Casa vizinho : atual.getVizinhos()) {
                     if (!visitadas.contains(vizinho)) {
                         visitadas.add(vizinho);
@@ -65,56 +51,45 @@ public class ClueModel {
                     }
                 }
             }
-
             nivel++;
         }
-
         return new ArrayList<>(fila);
     }
 
-    // ----------------------------
-    // 🚶 MOVER JOGADOR
-    // ----------------------------
     public void deslocarPiao(int idCasa) {
-
         Jogador jogador = getJogadorAtual();
-
         List<Casa> possiveis = mapearCasas(ultimoDado);
-
         for (Casa c : possiveis) {
             if (c.getId() == idCasa) {
                 jogador.mover(idCasa);
                 return;
             }
         }
-
         throw new IllegalArgumentException("Movimento inválido!");
     }
 
-    // ----------------------------
-    // 👤 JOGADOR ATUAL
-    // ----------------------------
     public Jogador getJogadorAtual() {
         return jogadores.get(jogadorAtual);
     }
 
-    // ----------------------------
-    // 🔄 PRÓXIMO JOGADOR
-    // ----------------------------
     public void proximoJogador() {
         jogadorAtual = (jogadorAtual + 1) % jogadores.size();
     }
 
-    // ----------------------------
-    // ➕ ADICIONAR JOGADOR
-    // ----------------------------
+    // ← método antigo mantido para os testes existentes não quebrarem
     public void adicionarJogador(Jogador jogador) {
         jogadores.add(jogador);
     }
 
-    // ----------------------------
-    // 📌 GET TABULEIRO
-    // ----------------------------
+    // ← novo método — View usa esse, sem precisar conhecer Jogador
+    public void adicionarJogador(int id, String nome, int posicaoInicial) {
+        Jogador j = new Jogador();
+        j.setId(id);
+        j.setNome(nome);
+        j.mover(posicaoInicial);
+        jogadores.add(j);
+    }
+
     public Tabuleiro getTabuleiro() {
         return tabuleiro;
     }

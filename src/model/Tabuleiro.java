@@ -1,37 +1,44 @@
 package model;
 
+import java.util.HashMap;
+
 class Tabuleiro {
 
-    // Grade 24 linhas x 22 colunas — mesma proporção do tabuleiro original
-    static final int LINHAS = 24;
-    static final int COLUNAS = 22;
+    static final int LINHAS = 25;
+    static final int COLUNAS = 24;
 
-    // id = lin * COLUNAS + col
-    // Posição na grade: lin = id / COLUNAS   col = id % COLUNAS
     private Casa[][] grade;
+    
+    // HashMap separado para os cômodos
+    private HashMap<Integer, Casa> comodos;
 
-    // Inicializador
     {
         grade = new Casa[LINHAS][COLUNAS];
+        comodos = new HashMap<>();
     }
 
-    // -------------------------------------------------------
-    // FUNÇÕES AUXILIARES
-    // -------------------------------------------------------
-
-    /** Insere uma casa na posição correta da grade usando seu id. */
     public void adicionarCasa(Casa casa) {
+        
+        // Se for cômodo (ID >= 1000), guarda no HashMap
+        if (casa.getId() >= 1000) {
+            comodos.put(casa.getId(), casa);
+            return;
+        }
+        
+        // Casa normal — guarda na grade
         int lin = casa.getId() / COLUNAS;
         int col = casa.getId() % COLUNAS;
         grade[lin][col] = casa;
     }
 
-    /**
-     * Recupera uma casa pelo id.
-     * id = lin * COLUNAS + col
-     * Retorna null se a posição não contiver casa navegável.
-     */
     public Casa getCasa(int id) {
+        
+        // Se for cômodo, busca no HashMap
+        if (id >= 1000) {
+            return comodos.get(id);
+        }
+        
+        // Casa normal — busca na grade
         int lin = id / COLUNAS;
         int col = id % COLUNAS;
         if (lin < 0 || lin >= LINHAS || col < 0 || col >= COLUNAS) {
@@ -40,7 +47,6 @@ class Tabuleiro {
         return grade[lin][col];
     }
 
-    /** Recupera uma casa diretamente pela linha e coluna. */
     public Casa getCasa(int lin, int col) {
         if (lin < 0 || lin >= LINHAS || col < 0 || col >= COLUNAS) {
             return null;
@@ -48,10 +54,6 @@ class Tabuleiro {
         return grade[lin][col];
     }
 
-    /**
-     * Conecta duas casas como vizinhas.
-     * Usa ids para localizar as casas na grade.
-     */
     public void conectarCasas(int id1, int id2) {
         Casa casa1 = getCasa(id1);
         Casa casa2 = getCasa(id2);
@@ -66,30 +68,9 @@ class Tabuleiro {
         casa2.adicionarVizinho(casa1);
     }
 
-    // -------------------------------------------------------
-    // GETTERS
-    // -------------------------------------------------------
+    public Casa[][] getGrade() { return grade; }
 
-    public Casa[][] getGrade() {
-        return grade;
-    }
-
-    // -------------------------------------------------------
-    // UTILITÁRIOS
-    // -------------------------------------------------------
-
-    /** Monta o id de uma casa a partir de linha e coluna. */
-    public static int toId(int lin, int col) {
-        return lin * COLUNAS + col;
-    }
-
-    /** Retorna a linha correspondente a um id. */
-    public static int toLinha(int id) {
-        return id / COLUNAS;
-    }
-
-    /** Retorna a coluna correspondente a um id. */
-    public static int toColuna(int id) {
-        return id % COLUNAS;
-    }
+    public static int toId(int lin, int col) { return lin * COLUNAS + col; }
+    public static int toLinha(int id) { return id / COLUNAS; }
+    public static int toColuna(int id) { return id % COLUNAS; }
 }
