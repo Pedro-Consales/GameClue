@@ -71,6 +71,10 @@ public class ClueModel {
     public Jogador getJogadorAtual() {
         return jogadores.get(jogadorAtual);
     }
+    
+    public int getPosicaoJogadorAtual() {
+        return getJogadorAtual().getPosicao();
+    }
 
     public void proximoJogador() {
         jogadorAtual = (jogadorAtual + 1) % jogadores.size();

@@ -20,13 +20,16 @@ class Jogador{
     public void adicionarCarta(Carta carta) {
         cartas.add(carta);
     }
+    
     public void removerCarta(Carta carta) {
         cartas.remove(carta);
+    
     }
     //Quantidade de Cartas
     public int quantidadeCartas() {
         return cartas.size();
     }
+    
     //Mover Posição
     public void mover(int novaPosicao) {
         this.posicao = novaPosicao;

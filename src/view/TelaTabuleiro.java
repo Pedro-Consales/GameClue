@@ -88,12 +88,12 @@ class PainelTabuleiro extends JPanel {
     private int clickCol = -1;
     private int clickLin = -1;
 
-    private int scarletCol = 6,  scarletLin = 22;
-    private int mustardCol = 0,  mustardLin = 15;
-    private int whiteCol   = 7,  whiteLin   = 0;
-    private int greenCol   = 12, greenLin   = 0;
-    private int peacockCol = 19, peacockLin = 5;
-    private int plumCol    = 19, plumLin    = 17;
+    private int scarletCol = 7,  scarletLin = 23;
+    private int mustardCol = 0,  mustardLin = 17;
+    private int whiteCol   = 9,  whiteLin   = 1;
+    private int greenCol   = 14, greenLin   = 1;
+    private int peacockCol = 22, peacockLin = 6; //
+    private int plumCol    = 22, plumLin    = 19;
 
     public PainelTabuleiro(ArrayList<String> jogadores) {
 
@@ -101,7 +101,6 @@ class PainelTabuleiro extends JPanel {
 
         model = new ClueModel();
 
-        // ← mudança: usa o novo método sem expor Jogador
         for (int i = 0; i < jogadores.size(); i++) {
             model.adicionarJogador(
                 i,
@@ -235,6 +234,12 @@ class PainelTabuleiro extends JPanel {
                 System.out.println("Clique → col: " + col + " lin: " + lin);
 
                 int idCasa = lin * 24 + col;
+                
+                System.out.println("=== DEBUG ===");
+                System.out.println("Posicao jogador: " + model.getPosicaoJogadorAtual());
+                System.out.println("idCasa clicada: " + idCasa);
+                System.out.println("col: " + col + " lin: " + lin);
+                System.out.println("=============");
 
                 try {
                     model.deslocarPiao(idCasa);

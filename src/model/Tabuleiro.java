@@ -73,4 +73,10 @@ class Tabuleiro {
     public static int toId(int lin, int col) { return lin * COLUNAS + col; }
     public static int toLinha(int id) { return id / COLUNAS; }
     public static int toColuna(int id) { return id % COLUNAS; }
+    
+    
+    
+    public void setMatriz(Casa[][] matriz) {
+    	this.grade = matriz;
+    }
 }
