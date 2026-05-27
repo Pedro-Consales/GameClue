@@ -45,7 +45,7 @@ public class ClueModel {
             for (int i = 0; i < tamanho; i++) {
                 Casa atual = fila.poll();
                 for (Casa vizinho : atual.getVizinhos()) {
-                    if (!visitadas.contains(vizinho)) {
+                    if (!visitadas.contains(vizinho) && !vizinho.isParede()) { 
                         visitadas.add(vizinho);
                         fila.add(vizinho);
                     }
@@ -53,18 +53,37 @@ public class ClueModel {
             }
             nivel++;
         }
-        return new ArrayList<>(fila);
+        return new ArrayList<>(visitadas);
     }
 
     public void deslocarPiao(int idCasa) {
+
+        Casa casa = tabuleiro.getCasa(idCasa);
+
+        if (casa == null) {
+            System.out.println("Motivo: casa não existe no tabuleiro");
+            throw new IllegalArgumentException("Movimento inválido!");
+        }
+
+        if (casa.isParede()) {
+            System.out.println("Motivo: casa é parede");
+            throw new IllegalArgumentException("Movimento inválido!");
+        }
+
         Jogador jogador = getJogadorAtual();
+        Casa origem = tabuleiro.getCasa(jogador.getPosicao());
+
         List<Casa> possiveis = mapearCasas(ultimoDado);
+        possiveis.remove(origem); // ← não pode ficar na mesma casa
+
         for (Casa c : possiveis) {
             if (c.getId() == idCasa) {
                 jogador.mover(idCasa);
                 return;
             }
         }
+
+        System.out.println("Motivo: casa id=" + idCasa + " não está nas " + possiveis.size() + " casas alcançáveis com " + (ultimoDado[0]+ultimoDado[1]) + " passos");
         throw new IllegalArgumentException("Movimento inválido!");
     }
 
