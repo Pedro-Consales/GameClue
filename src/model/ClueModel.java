@@ -56,6 +56,10 @@ public class ClueModel {
         return new ArrayList<>(visitadas);
     }
 
+    public List<Casa> getCasasPossiveis() {
+    	return mapearCasas(ultimoDado);
+    }
+    
     public void deslocarPiao(int idCasa) {
 
         Casa casa = tabuleiro.getCasa(idCasa);
@@ -73,7 +77,7 @@ public class ClueModel {
         Jogador jogador = getJogadorAtual();
         Casa origem = tabuleiro.getCasa(jogador.getPosicao());
 
-        List<Casa> possiveis = mapearCasas(ultimoDado);
+        List<Casa> possiveis = getCasasPossiveis();
         possiveis.remove(origem); // ← não pode ficar na mesma casa
 
         for (Casa c : possiveis) {

@@ -95,4 +95,10 @@ public class Casa {
     public void setTipo(TipoCasa tipo) {
         this.tipo = tipo;
     }
+    
+ // Adiciona isso no Casa.java
+    @Override
+    public String toString() {
+        return "Casa(id=" + id + ", lin=" + linha + ", col=" + coluna + ", tipo=" + tipo + ")";
+    }
 }

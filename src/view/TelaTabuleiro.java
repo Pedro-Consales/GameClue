@@ -239,6 +239,7 @@ class PainelTabuleiro extends JPanel {
                 System.out.println("Posicao jogador: " + model.getPosicaoJogadorAtual());
                 System.out.println("idCasa clicada: " + idCasa);
                 System.out.println("col: " + col + " lin: " + lin);
+                System.out.println("Casas possíveis:" + model.getCasasPossiveis());
                 System.out.println("=============");
 
                 try {
