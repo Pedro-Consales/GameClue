@@ -32,6 +32,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import model.ClueModel;
+import model.Casa;
+import java.util.List;
 
 // ← import model.Jogador removido
 
@@ -89,11 +91,11 @@ class PainelTabuleiro extends JPanel {
     private int clickLin = -1;
 
     private int scarletCol = 7,  scarletLin = 23;
-    private int mustardCol = 0,  mustardLin = 17;
+    private int mustardCol = 1,  mustardLin = 17;
     private int whiteCol   = 9,  whiteLin   = 1;
     private int greenCol   = 14, greenLin   = 1;
     private int peacockCol = 22, peacockLin = 6; //
-    private int plumCol    = 22, plumLin    = 19;
+    private int plumCol    = 23, plumLin    = 19;
 
     public PainelTabuleiro(ArrayList<String> jogadores) {
 
@@ -182,6 +184,7 @@ class PainelTabuleiro extends JPanel {
                             labelNumero.setText("Total: " + total);
                             podeMover = true;
                             timerDado.stop();
+                            repaint();
                         } else {
                             dadoAtual1 = (int)(Math.random() * 6);
                             dadoAtual2 = (int)(Math.random() * 6);
@@ -258,11 +261,11 @@ class PainelTabuleiro extends JPanel {
 
     private int getPosicaoInicial(String nome) {
         if (nome.equals("Scarlet"))  return 22 * 24 + 6;
-        if (nome.equals("Mustard"))  return 15 * 24 + 0;
-        if (nome.equals("White"))    return 0  * 24 + 7;
-        if (nome.equals("Green"))    return 0  * 24 + 12;
-        if (nome.equals("Peacock"))  return 5  * 24 + 19;
-        if (nome.equals("Plum"))     return 17 * 24 + 19;
+        if (nome.equals("Mustard"))  return 17 * 24 + 1;
+        if (nome.equals("White"))    return 1  * 24 + 9;
+        if (nome.equals("Green"))    return 1  * 24 + 14;
+        if (nome.equals("Peacock"))  return 6  * 24 + 22;
+        if (nome.equals("Plum"))     return 19 * 24 + 19;
         return 0;
     }
 
@@ -276,6 +279,21 @@ class PainelTabuleiro extends JPanel {
         double escalaY = (double) getHeight() / IMG_H;
 
         Graphics2D g2d = (Graphics2D) g;
+
+        if (podeMover) {
+            List<Casa> possiveis = model.getCasasPossiveis();
+            g2d.setColor(new Color(0, 255, 0, 80));
+            for (Casa casa : possiveis) {
+                int col = casa.getColuna();
+                int lin = casa.getLinha();
+                int x = (int)(col * CELL_W * escalaX);
+                int y = (int)(lin * CELL_H * escalaY);
+                int w = (int)(CELL_W * escalaX);
+                int h = (int)(CELL_H * escalaY);
+                g2d.fillRect(x, y, w, h);
+            }
+        }
+
 
         g2d.setColor(corJogadorAtual);
         g2d.fillRoundRect(20, 20, 280, 60, 20, 20);
@@ -348,7 +366,9 @@ class PainelTabuleiro extends JPanel {
     }
 
     private void proximoJogador() {
-
+        clickCol = -1;  // ← ADICIONA
+        clickLin = -1; 
+        
         jogadorAtualIdx++;
         if (jogadorAtualIdx >= jogadores.size()) jogadorAtualIdx = 0;
 

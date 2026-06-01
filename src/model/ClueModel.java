@@ -45,7 +45,7 @@ public class ClueModel {
             for (int i = 0; i < tamanho; i++) {
                 Casa atual = fila.poll();
                 for (Casa vizinho : atual.getVizinhos()) {
-                    if (!visitadas.contains(vizinho) && !vizinho.isParede()) { 
+                    if (!visitadas.contains(vizinho) && (vizinho.isCaminho() || vizinho.isPorta())) { 
                         visitadas.add(vizinho);
                         fila.add(vizinho);
                     }
