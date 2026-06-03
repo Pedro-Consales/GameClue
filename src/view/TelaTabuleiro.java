@@ -38,17 +38,19 @@ import java.util.List;
 public class TelaTabuleiro extends JFrame {
 
 	public TelaTabuleiro(ArrayList<String> jogadores) {
-	    setTitle("Clue - Tabuleiro");
-	    setSize(1400, 1050);
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    setLocationRelativeTo(null);
+        setTitle("Clue - Tabuleiro");
+        setSize(1400, 1050);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
-	    setLayout(new java.awt.BorderLayout());
-	    add(new PainelTabuleiro(jogadores), java.awt.BorderLayout.CENTER);
-	    add(new PainelSidebar(jogadores), java.awt.BorderLayout.EAST);
+        setLayout(new java.awt.BorderLayout());
+        
+        PainelTabuleiro painelTabuleiro = new PainelTabuleiro(jogadores);
+        add(painelTabuleiro, java.awt.BorderLayout.CENTER);
+        add(new PainelSidebar(jogadores, painelTabuleiro), java.awt.BorderLayout.EAST);
 
-	    setVisible(true);
-	}
+        setVisible(true);
+    }
 
     public static void main(String[] args) {
         ArrayList<String> jogadores = new ArrayList<>();
@@ -99,6 +101,43 @@ class PainelTabuleiro extends JPanel {
     private int peacockCol = 23, peacockLin = 6;
     private int plumCol    = 23, plumLin    = 19;
 
+    public void rolarDados(JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
+
+        if (animando) return;
+        if (podeMover) return;
+
+        int[] dados = model.lancarDados();
+        resultadoDado1 = dados[0];
+        resultadoDado2 = dados[1];
+
+        frameAnimacao = 0;
+        animando = true;
+
+        timerDado = new Timer(80, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                frameAnimacao++;
+                if (frameAnimacao >= 15) {
+                    animando = false;
+                    dadoAtual1 = resultadoDado1 - 1;
+                    dadoAtual2 = resultadoDado2 - 1;
+                    labelNumero.setText("Total: " + (resultadoDado1 + resultadoDado2));
+                    podeMover = true;
+                    timerDado.stop();
+                    repaint();
+                } else {
+                    dadoAtual1 = (int)(Math.random() * 6);
+                    dadoAtual2 = (int)(Math.random() * 6);
+                }
+
+                int tamanho = frameAnimacao < 7 ? 60 + frameAnimacao * 8 : 116 - (frameAnimacao - 7) * 8;
+
+                labelDado1.setIcon(new ImageIcon(imagensDado[dadoAtual1].getScaledInstance(tamanho, tamanho, Image.SCALE_SMOOTH)));
+                labelDado2.setIcon(new ImageIcon(imagensDado[dadoAtual2].getScaledInstance(tamanho, tamanho, Image.SCALE_SMOOTH)));
+            }
+        });
+        timerDado.start();
+    }
+
     public PainelTabuleiro(ArrayList<String> jogadores) {
 
         this.jogadores = jogadores;
@@ -134,93 +173,6 @@ class PainelTabuleiro extends JPanel {
         }
 
         setLayout(null);
-
-        JPanel painelDados = new JPanel();
-        painelDados.setLayout(null);
-        painelDados.setOpaque(false);
-        painelDados.setBounds(580, 340, 300, 350);
-
-        JPanel painelImagens = new JPanel();
-        painelImagens.setLayout(null);
-        painelImagens.setOpaque(false);
-        painelImagens.setBounds(20, 20, 260, 120);
-
-        JLabel labelDado1 = new JLabel();
-        JLabel labelDado2 = new JLabel();
-        labelDado1.setBounds(70, 40, 100, 100);
-        labelDado2.setBounds(140, 40, 100, 100);
-        painelImagens.add(labelDado1);
-        painelImagens.add(labelDado2);
-
-        JLabel labelNumero = new JLabel("Total: ?");
-        labelNumero.setForeground(Color.BLACK);
-        labelNumero.setFont(new Font("Arial", Font.BOLD, 24));
-        labelNumero.setBounds(110, 240, 200, 30);
-
-        JButton botaoDados = new JButton("Rolar Dados");
-        botaoDados.setBounds(75, 200, 150, 40);
-
-        botaoDados.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-                if (animando) return;
-                if (podeMover) return;
-
-                int[] dados = model.lancarDados();
-                resultadoDado1 = dados[0];
-                resultadoDado2 = dados[1];
-
-                frameAnimacao = 0;
-                animando = true;
-
-                timerDado = new Timer(80, new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-
-                        frameAnimacao++;
-
-                        if (frameAnimacao >= 15) {
-                            animando = false;
-                            dadoAtual1 = resultadoDado1 - 1;
-                            dadoAtual2 = resultadoDado2 - 1;
-                            int total = resultadoDado1 + resultadoDado2;
-                            labelNumero.setText("Total: " + total);
-                            podeMover = true;
-                            timerDado.stop();
-                            repaint();
-                        } else {
-                            dadoAtual1 = (int)(Math.random() * 6);
-                            dadoAtual2 = (int)(Math.random() * 6);
-                        }
-
-                        int tamanho;
-                        if (frameAnimacao < 7) {
-                            tamanho = 60 + frameAnimacao * 8;
-                        } else {
-                            tamanho = 116 - (frameAnimacao - 7) * 8;
-                        }
-
-                        Image img1 = imagensDado[dadoAtual1].getScaledInstance(
-                            tamanho, tamanho, Image.SCALE_SMOOTH
-                        );
-                        Image img2 = imagensDado[dadoAtual2].getScaledInstance(
-                            tamanho, tamanho, Image.SCALE_SMOOTH
-                        );
-
-                        labelDado1.setIcon(new ImageIcon(img1));
-                        labelDado2.setIcon(new ImageIcon(img2));
-                        labelDado1.repaint();
-                        labelDado2.repaint();
-                    }
-                });
-
-                timerDado.start();
-            }
-        });
-
-        painelDados.add(painelImagens);
-        painelDados.add(labelNumero);
-        painelDados.add(botaoDados);
-        add(painelDados);
 
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -320,12 +272,6 @@ class PainelTabuleiro extends JPanel {
             }
         }
 
-        g2d.setColor(corJogadorAtual);
-        g2d.fillRoundRect(20, 20, 280, 60, 20, 20);
-        g2d.setColor(Color.BLACK);
-        g2d.setFont(new Font("Arial", Font.BOLD, 28));
-        g2d.drawString("Vez de: " + nomeJogadorAtual, 40, 60);
-
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
         desenharPiao(g2d, escalaX, escalaY, scarletCol, scarletLin, Color.RED,              "Scarlet", jogadores);
@@ -387,6 +333,12 @@ class PainelTabuleiro extends JPanel {
         repaint();
     }
 
+    private JLabel labelVezDe; // ← adiciona como variável da classe
+
+    public void setLabelVezDe(JLabel label) {
+        this.labelVezDe = label;
+    }
+
     private void atualizarJogadorAtual() {
 
         nomeJogadorAtual = jogadores.get(jogadorAtualIdx);
@@ -397,6 +349,11 @@ class PainelTabuleiro extends JPanel {
         else if (nomeJogadorAtual.equals("Green"))    corJogadorAtual = Color.GREEN;
         else if (nomeJogadorAtual.equals("Peacock"))  corJogadorAtual = Color.BLUE;
         else if (nomeJogadorAtual.equals("Plum"))     corJogadorAtual = new Color(128, 0, 128);
+
+        if (labelVezDe != null) {
+            labelVezDe.setText("Vez de: " + nomeJogadorAtual);
+            labelVezDe.setForeground(corJogadorAtual);
+        }
     }
 
     private void proximoJogador() {

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class PainelSidebar extends JPanel {
 
-    public PainelSidebar(ArrayList<String> jogadores) {
+    public PainelSidebar(ArrayList<String> jogadores, PainelTabuleiro painelTabuleiro) {
 
         setPreferredSize(new Dimension(220, 0));
         setBackground(new Color(45, 45, 45));
@@ -31,7 +31,11 @@ public class PainelSidebar extends JPanel {
         add(Box.createVerticalGlue());
 
         // --- Info jogador da vez ---
-        JLabel labelNome = new JLabel("Vez de: ...");
+        JLabel labelNome = new JLabel("Vez de: " + jogadores.get(0));
+        labelNome.setForeground(Color.RED); // Scarlet começa
+        painelTabuleiro.setLabelVezDe(labelNome);
+        
+
         labelNome.setForeground(Color.WHITE);
         labelNome.setFont(new Font("Arial", Font.BOLD, 14));
         labelNome.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -40,20 +44,37 @@ public class PainelSidebar extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 10)));
 
         // --- Imagens dos dados ---
+        JLabel labelDado1 = new JLabel();
+        JLabel labelDado2 = new JLabel();
+        labelDado1.setPreferredSize(new Dimension(80, 80));
+        labelDado2.setPreferredSize(new Dimension(80, 80));
+
         JPanel painelDados = new JPanel();
         painelDados.setOpaque(false);
         painelDados.setLayout(new FlowLayout(FlowLayout.CENTER, 8, 0));
-        JLabel dado1 = new JLabel("🎲");
-        JLabel dado2 = new JLabel("🎲");
-        dado1.setFont(new Font("Arial", Font.PLAIN, 40));
-        dado2.setFont(new Font("Arial", Font.PLAIN, 40));
-        painelDados.add(dado1);
-        painelDados.add(dado2);
+        painelDados.add(labelDado1);
+        painelDados.add(labelDado2);
         add(painelDados);
+
+        add(Box.createRigidArea(new Dimension(0, 5)));
+
+        // --- Total ---
+        JLabel labelNumero = new JLabel("Total: ?");
+        labelNumero.setForeground(Color.WHITE);
+        labelNumero.setFont(new Font("Arial", Font.BOLD, 16));
+        labelNumero.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(labelNumero);
 
         add(Box.createRigidArea(new Dimension(0, 10)));
 
-        add(criarBotao("Jogar Dados"));
+        // --- Botão Jogar Dados conectado ao tabuleiro ---
+        JButton botaoJogarDados = criarBotao("Jogar Dados");
+        botaoJogarDados.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                painelTabuleiro.rolarDados(labelDado1, labelDado2, labelNumero);
+            }
+        });
+        add(botaoJogarDados);
     }
 
     private JButton criarBotao(String texto) {
