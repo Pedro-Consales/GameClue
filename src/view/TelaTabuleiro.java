@@ -37,14 +37,18 @@ import java.util.List;
 
 public class TelaTabuleiro extends JFrame {
 
-    public TelaTabuleiro(ArrayList<String> jogadores) {
-        setTitle("Clue - Tabuleiro");
-        setSize(1400, 1050);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        add(new PainelTabuleiro(jogadores));
-        setVisible(true);
-    }
+	public TelaTabuleiro(ArrayList<String> jogadores) {
+	    setTitle("Clue - Tabuleiro");
+	    setSize(1400, 1050);
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setLocationRelativeTo(null);
+
+	    setLayout(new java.awt.BorderLayout());
+	    add(new PainelTabuleiro(jogadores), java.awt.BorderLayout.CENTER);
+	    add(new PainelSidebar(jogadores), java.awt.BorderLayout.EAST);
+
+	    setVisible(true);
+	}
 
     public static void main(String[] args) {
         ArrayList<String> jogadores = new ArrayList<>();
