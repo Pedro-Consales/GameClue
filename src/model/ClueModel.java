@@ -74,11 +74,19 @@ public class ClueModel {
             throw new IllegalArgumentException("Movimento inválido!");
         }
 
+        // ← validação: casa ocupada por outro jogador
+        for (Jogador j : jogadores) {
+            if (j != getJogadorAtual() && j.getPosicao() == idCasa) {
+                System.out.println("Motivo: casa ocupada por " + j.getNome());
+                throw new IllegalArgumentException("Movimento inválido!");
+            }
+        }
+
         Jogador jogador = getJogadorAtual();
         Casa origem = tabuleiro.getCasa(jogador.getPosicao());
 
         List<Casa> possiveis = getCasasPossiveis();
-        possiveis.remove(origem); // ← não pode ficar na mesma casa
+        possiveis.remove(origem);
 
         for (Casa c : possiveis) {
             if (c.getId() == idCasa) {
