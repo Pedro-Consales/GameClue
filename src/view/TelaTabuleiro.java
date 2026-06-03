@@ -35,8 +35,6 @@ import model.ClueModel;
 import model.Casa;
 import java.util.List;
 
-// ← import model.Jogador removido
-
 public class TelaTabuleiro extends JFrame {
 
     public TelaTabuleiro(ArrayList<String> jogadores) {
@@ -75,10 +73,10 @@ class PainelTabuleiro extends JPanel {
     private boolean animando = false;
     private Timer timerDado;
 
-    private static final int OFFSET_X = 0;
-    private static final int OFFSET_Y = 0;
-    private static final int CELL_W = 25;
-    private static final int CELL_H = 25;
+    private static final int OFFSET_X = 10; // ← ajuste aqui
+    private static final int OFFSET_Y = 10; // ← ajuste aqui
+    private static final double CELL_W = (600 - 2.0 * OFFSET_X) / 24.0;  // ← double
+    private static final double CELL_H = (625 - 2.0 * OFFSET_Y) / 25.0;  // ← double
     private static final int IMG_W = 600;
     private static final int IMG_H = 625;
 
@@ -90,11 +88,11 @@ class PainelTabuleiro extends JPanel {
     private int clickCol = -1;
     private int clickLin = -1;
 
-    private int scarletCol = 7,  scarletLin = 23;
-    private int mustardCol = 1,  mustardLin = 17;
-    private int whiteCol   = 9,  whiteLin   = 1;
-    private int greenCol   = 14, greenLin   = 1;
-    private int peacockCol = 22, peacockLin = 6; //
+    private int scarletCol = 7,  scarletLin = 24;
+    private int mustardCol = 0,  mustardLin = 17;
+    private int whiteCol   = 9,  whiteLin   = 0;
+    private int greenCol   = 14, greenLin   = 0;
+    private int peacockCol = 23, peacockLin = 6;
     private int plumCol    = 23, plumLin    = 19;
 
     public PainelTabuleiro(ArrayList<String> jogadores) {
@@ -231,13 +229,14 @@ class PainelTabuleiro extends JPanel {
                 double escalaX = (double) getWidth()  / IMG_W;
                 double escalaY = (double) getHeight() / IMG_H;
 
-                int col = (int)((mouseX / escalaX) / CELL_W);
-                int lin = (int)((mouseY / escalaY) / CELL_H);
+                // ← desconta o offset ao calcular col/lin
+                int col = (int)(((mouseX / escalaX) - OFFSET_X) / CELL_W);
+                int lin = (int)(((mouseY / escalaY) - OFFSET_Y) / CELL_H);
 
                 System.out.println("Clique → col: " + col + " lin: " + lin);
 
                 int idCasa = lin * 24 + col;
-                
+
                 System.out.println("=== DEBUG ===");
                 System.out.println("Posicao jogador: " + model.getPosicaoJogadorAtual());
                 System.out.println("idCasa clicada: " + idCasa);
@@ -269,6 +268,26 @@ class PainelTabuleiro extends JPanel {
         return 0;
     }
 
+    private void desenharGrid(Graphics2D g2d, double escalaX, double escalaY) {
+        g2d.setColor(new Color(255, 0, 0, 80));
+        g2d.setFont(new Font("Arial", Font.PLAIN, 8));
+
+        for (int lin = 0; lin < 25; lin++) {
+            for (int col = 0; col < 24; col++) {
+                // ← offset aplicado
+                int x = (int)(OFFSET_X * escalaX + col * CELL_W * escalaX);
+                int y = (int)(OFFSET_Y * escalaY + lin * CELL_H * escalaY);
+                int w = (int)(CELL_W * escalaX);
+                int h = (int)(CELL_H * escalaY);
+
+                g2d.drawRect(x, y, w, h);
+                g2d.setColor(new Color(255, 0, 0, 180));
+                g2d.drawString(col + "," + lin, x + 2, y + 10);
+                g2d.setColor(new Color(255, 0, 0, 80));
+            }
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -280,20 +299,22 @@ class PainelTabuleiro extends JPanel {
 
         Graphics2D g2d = (Graphics2D) g;
 
+        desenharGrid(g2d, escalaX, escalaY);
+
         if (podeMover) {
             List<Casa> possiveis = model.getCasasPossiveis();
             g2d.setColor(new Color(0, 255, 0, 80));
             for (Casa casa : possiveis) {
                 int col = casa.getColuna();
                 int lin = casa.getLinha();
-                int x = (int)(col * CELL_W * escalaX);
-                int y = (int)(lin * CELL_H * escalaY);
+                // ← offset aplicado
+                int x = (int)(OFFSET_X * escalaX + col * CELL_W * escalaX);
+                int y = (int)(OFFSET_Y * escalaY + lin * CELL_H * escalaY);
                 int w = (int)(CELL_W * escalaX);
                 int h = (int)(CELL_H * escalaY);
                 g2d.fillRect(x, y, w, h);
             }
         }
-
 
         g2d.setColor(corJogadorAtual);
         g2d.fillRoundRect(20, 20, 280, 60, 20, 20);
@@ -311,8 +332,9 @@ class PainelTabuleiro extends JPanel {
         desenharPiao(g2d, escalaX, escalaY, plumCol,    plumLin,    new Color(128, 0, 128), "Plum",    jogadores);
 
         if (clickCol != -1 && clickLin != -1) {
-            int x = (int)((clickCol * CELL_W) * escalaX);
-            int y = (int)((clickLin * CELL_H) * escalaY);
+            // ← offset aplicado
+            int x = (int)(OFFSET_X * escalaX + clickCol * CELL_W * escalaX);
+            int y = (int)(OFFSET_Y * escalaY + clickLin * CELL_H * escalaY);
             int w = (int)(CELL_W * escalaX);
             int h = (int)(CELL_H * escalaY);
             g2d.setColor(new Color(0, 255, 0, 120));
@@ -321,17 +343,25 @@ class PainelTabuleiro extends JPanel {
     }
 
     private void desenharPiao(Graphics2D g2d,
-                              double escalaX, double escalaY,
-                              int col, int lin,
-                              Color cor, String nome,
-                              ArrayList<String> jogadores) {
+            double escalaX, double escalaY,
+            int col, int lin,
+            Color cor, String nome,
+            ArrayList<String> jogadores) {
 
         if (!jogadores.contains(nome)) return;
 
-        int x = (int)(col * CELL_W * escalaX);
-        int y = (int)(lin * CELL_H * escalaY);
-        int w = (int)(CELL_W * escalaX);
-        int h = (int)(CELL_H * escalaY);
+        int cellPxW = (int)(CELL_W * escalaX);
+        int cellPxH = (int)(CELL_H * escalaY);
+
+        // ← offset aplicado
+        int cx = (int)(OFFSET_X * escalaX + col * CELL_W * escalaX);
+        int cy = (int)(OFFSET_Y * escalaY + lin * CELL_H * escalaY);
+
+        int margem = 3;
+        int x = cx + margem;
+        int y = cy + margem;
+        int w = cellPxW - margem * 2;
+        int h = cellPxH - margem * 2;
 
         g2d.setColor(cor);
         g2d.fillOval(x, y, w, h);
@@ -366,9 +396,9 @@ class PainelTabuleiro extends JPanel {
     }
 
     private void proximoJogador() {
-        clickCol = -1;  // ← ADICIONA
-        clickLin = -1; 
-        
+        clickCol = -1;
+        clickLin = -1;
+
         jogadorAtualIdx++;
         if (jogadorAtualIdx >= jogadores.size()) jogadorAtualIdx = 0;
 
