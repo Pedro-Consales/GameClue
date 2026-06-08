@@ -7,14 +7,27 @@ import java.util.ArrayList;
 
 public class PainelSidebar extends JPanel {
 
+    // Referência ao modelo para chamar setDadosParaTeste e usarPassagemSecreta
+    private PainelTabuleiro painelTabuleiro;
+
     public PainelSidebar(ArrayList<String> jogadores, PainelTabuleiro painelTabuleiro) {
+
+        this.painelTabuleiro = painelTabuleiro;
 
         setPreferredSize(new Dimension(220, 0));
         setBackground(new Color(45, 45, 45));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        add(criarBotao("Passagem Secreta"));
+        // --- Botão Passagem Secreta ---
+        JButton botaoPassagem = criarBotao("Passagem Secreta");
+        botaoPassagem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                painelTabuleiro.usarPassagemSecreta();
+            }
+        });
+        add(botaoPassagem);
+
         add(Box.createRigidArea(new Dimension(0, 8)));
         add(criarBotao("Próximo"));
         add(Box.createRigidArea(new Dimension(0, 8)));
@@ -40,7 +53,6 @@ public class PainelSidebar extends JPanel {
         JLabel labelNome = new JLabel("Vez de: " + jogadores.get(0));
         labelNome.setForeground(Color.RED); // Scarlet começa
         painelTabuleiro.setLabelVezDe(labelNome);
-        
 
         labelNome.setForeground(Color.WHITE);
         labelNome.setFont(new Font("Arial", Font.BOLD, 14));
@@ -73,7 +85,7 @@ public class PainelSidebar extends JPanel {
 
         add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // --- Botão Jogar Dados conectado ao tabuleiro ---
+        // --- Botão Jogar Dados ---
         JButton botaoJogarDados = criarBotao("Jogar Dados");
         botaoJogarDados.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -81,6 +93,51 @@ public class PainelSidebar extends JPanel {
             }
         });
         add(botaoJogarDados);
+
+        add(Box.createRigidArea(new Dimension(0, 12)));
+
+        // -----------------------------------------------
+        // JComboBox para forçar valores dos dados (teste)
+        // -----------------------------------------------
+        JLabel labelEscolher = new JLabel("Forçar dados (teste):");
+        labelEscolher.setForeground(new Color(180, 180, 180));
+        labelEscolher.setFont(new Font("Arial", Font.PLAIN, 11));
+        labelEscolher.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(labelEscolher);
+
+        add(Box.createRigidArea(new Dimension(0, 4)));
+
+        // Cria os dois JComboBox com valores 1 a 6
+        Integer[] valores = {1, 2, 3, 4, 5, 6};
+        JComboBox<Integer> combo1 = new JComboBox<Integer>(valores);
+        JComboBox<Integer> combo2 = new JComboBox<Integer>(valores);
+
+        combo1.setMaximumSize(new Dimension(80, 30));
+        combo2.setMaximumSize(new Dimension(80, 30));
+
+        JPanel painelCombos = new JPanel();
+        painelCombos.setOpaque(false);
+        painelCombos.setLayout(new FlowLayout(FlowLayout.CENTER, 6, 0));
+        painelCombos.add(combo1);
+        painelCombos.add(combo2);
+        add(painelCombos);
+
+        add(Box.createRigidArea(new Dimension(0, 4)));
+
+        // Botão "Escolher Dados" — aplica os valores selecionados
+        JButton botaoEscolherDados = criarBotao("Escolher Dados");
+        botaoEscolherDados.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int v1 = (Integer) combo1.getSelectedItem();
+                int v2 = (Integer) combo2.getSelectedItem();
+                // Chama o método de teste no PainelTabuleiro,
+                // que repassa ao ClueModel e atualiza os labels
+                painelTabuleiro.forcarDados(v1, v2, labelDado1, labelDado2, labelNumero);
+            }
+        });
+        add(botaoEscolherDados);
+
+        add(Box.createRigidArea(new Dimension(0, 8)));
     }
 
     private JButton criarBotao(String texto) {

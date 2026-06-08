@@ -37,14 +37,14 @@ import java.util.List;
 
 public class TelaTabuleiro extends JFrame {
 
-	public TelaTabuleiro(ArrayList<String> jogadores) {
+    public TelaTabuleiro(ArrayList<String> jogadores) {
         setTitle("Clue - Tabuleiro");
         setSize(1400, 1050);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         setLayout(new java.awt.BorderLayout());
-        
+
         PainelTabuleiro painelTabuleiro = new PainelTabuleiro(jogadores);
         add(painelTabuleiro, java.awt.BorderLayout.CENTER);
         add(new PainelSidebar(jogadores, painelTabuleiro), java.awt.BorderLayout.EAST);
@@ -79,10 +79,10 @@ class PainelTabuleiro extends JPanel {
     private boolean animando = false;
     private Timer timerDado;
 
-    private static final int OFFSET_X = 10; // ← ajuste aqui
-    private static final int OFFSET_Y = 10; // ← ajuste aqui
-    private static final double CELL_W = (600 - 2.0 * OFFSET_X) / 24.0;  // ← double
-    private static final double CELL_H = (625 - 2.0 * OFFSET_Y) / 25.0;  // ← double
+    private static final int OFFSET_X = 10;
+    private static final int OFFSET_Y = 10;
+    private static final double CELL_W = (600 - 2.0 * OFFSET_X) / 24.0;
+    private static final double CELL_H = (625 - 2.0 * OFFSET_Y) / 25.0;
     private static final int IMG_W = 600;
     private static final int IMG_H = 625;
 
@@ -94,6 +94,7 @@ class PainelTabuleiro extends JPanel {
     private int clickCol = -1;
     private int clickLin = -1;
 
+    // Posições visuais iniciais — NÃO ALTERAR
     private int scarletCol = 7,  scarletLin = 24;
     private int mustardCol = 0,  mustardLin = 17;
     private int whiteCol   = 9,  whiteLin   = 0;
@@ -101,8 +102,18 @@ class PainelTabuleiro extends JPanel {
     private int peacockCol = 23, peacockLin = 6;
     private int plumCol    = 23, plumLin    = 19;
 
-    public void rolarDados(JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
+    // Ranges dos cômodos de canto para passagem secreta
+    // formato: {colMin, colMax, linMin, linMax}
+    // Margem de 1 célula nas bordas para não ficar colado na parede
+    private static final int[] RANGE_COZINHA    = {1, 4, 2, 5};   // cód 2
+    private static final int[] RANGE_ESCRITORIO = {18, 22, 22, 23}; // cód 10
+    private static final int[] RANGE_JARDIM     = {19, 22, 2, 4};  // cód 4
+    private static final int[] RANGE_SALA_ESTAR = {1, 5, 20, 23};  // cód 8
 
+    // =========================================================
+    // ROLAR DADOS
+    // =========================================================
+    public void rolarDados(JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
         if (animando) return;
         if (podeMover) return;
 
@@ -110,6 +121,27 @@ class PainelTabuleiro extends JPanel {
         resultadoDado1 = dados[0];
         resultadoDado2 = dados[1];
 
+        iniciarAnimacaoDados(labelDado1, labelDado2, labelNumero);
+    }
+
+    // =========================================================
+    // FORÇAR DADOS (teste — JComboBox)
+    // =========================================================
+    public void forcarDados(int v1, int v2, JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
+        if (animando) return;
+        if (podeMover) return;
+
+        model.setDadosParaTeste(v1, v2);
+        resultadoDado1 = v1;
+        resultadoDado2 = v2;
+
+        iniciarAnimacaoDados(labelDado1, labelDado2, labelNumero);
+    }
+
+    // =========================================================
+    // ANIMAÇÃO DOS DADOS (compartilhada)
+    // =========================================================
+    private void iniciarAnimacaoDados(JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
         frameAnimacao = 0;
         animando = true;
 
@@ -131,15 +163,83 @@ class PainelTabuleiro extends JPanel {
 
                 int tamanho = frameAnimacao < 7 ? 60 + frameAnimacao * 8 : 116 - (frameAnimacao - 7) * 8;
 
-                labelDado1.setIcon(new ImageIcon(imagensDado[dadoAtual1].getScaledInstance(tamanho, tamanho, Image.SCALE_SMOOTH)));
-                labelDado2.setIcon(new ImageIcon(imagensDado[dadoAtual2].getScaledInstance(tamanho, tamanho, Image.SCALE_SMOOTH)));
+                if (imagensDado[dadoAtual1] != null)
+                    labelDado1.setIcon(new ImageIcon(imagensDado[dadoAtual1].getScaledInstance(tamanho, tamanho, Image.SCALE_SMOOTH)));
+                if (imagensDado[dadoAtual2] != null)
+                    labelDado2.setIcon(new ImageIcon(imagensDado[dadoAtual2].getScaledInstance(tamanho, tamanho, Image.SCALE_SMOOTH)));
             }
         });
         timerDado.start();
     }
 
-    public PainelTabuleiro(ArrayList<String> jogadores) {
+    // =========================================================
+    // PASSAGEM SECRETA
+    // =========================================================
+    public void usarPassagemSecreta() {
+        if (podeMover) {
+            System.out.println("Passagem Secreta: não permitida após rolar dados.");
+            return;
+        }
+        if (animando) return;
 
+        int posAtual = model.getPosicaoJogadorAtual();
+        int linAtual = posAtual / 24;
+        int colAtual = posAtual % 24;
+
+        int valorCasa = model.getValorGrade(linAtual, colAtual);
+
+        int[] range = null;
+
+        if      (valorCasa == 2)  range = RANGE_ESCRITORIO;
+        else if (valorCasa == 10) range = RANGE_COZINHA;
+        else if (valorCasa == 4)  range = RANGE_SALA_ESTAR;
+        else if (valorCasa == 8)  range = RANGE_JARDIM;
+        else {
+            System.out.println("Passagem Secreta: jogador nao esta em comodo de canto.");
+            return;
+        }
+
+        int[] destino = sortearDestino(range);
+        int idDestino = destino[1] * 24 + destino[0];
+
+        model.usarPassagemSecreta(idDestino);
+        moverPiaoVisual(destino[0], destino[1]);
+        proximoJogador();
+    }
+
+    /**
+     * Sorteia uma posicao livre dentro do range do comodo.
+     * range = {colMin, colMax, linMin, linMax}
+     * Tenta ate 20 vezes antes de usar o centro como fallback.
+     */
+    private int[] sortearDestino(int[] range) {
+        int colMin = range[0], colMax = range[1];
+        int linMin = range[2], linMax = range[3];
+
+        java.util.List<String> ocupados = new java.util.ArrayList<String>();
+        ocupados.add(scarletCol + "," + scarletLin);
+        ocupados.add(mustardCol + "," + mustardLin);
+        ocupados.add(whiteCol   + "," + whiteLin);
+        ocupados.add(greenCol   + "," + greenLin);
+        ocupados.add(peacockCol + "," + peacockLin);
+        ocupados.add(plumCol    + "," + plumLin);
+
+        for (int tentativa = 0; tentativa < 20; tentativa++) {
+            int col = colMin + (int)(Math.random() * (colMax - colMin + 1));
+            int lin = linMin + (int)(Math.random() * (linMax - linMin + 1));
+            if (!ocupados.contains(col + "," + lin)) {
+                return new int[]{col, lin};
+            }
+        }
+
+        // Fallback: centro do range
+        return new int[]{(colMin + colMax) / 2, (linMin + linMax) / 2};
+    }
+
+    // =========================================================
+    // CONSTRUTOR
+    // =========================================================
+    public PainelTabuleiro(ArrayList<String> jogadores) {
         this.jogadores = jogadores;
 
         model = new ClueModel();
@@ -155,18 +255,14 @@ class PainelTabuleiro extends JPanel {
         atualizarJogadorAtual();
 
         try {
-            imagemTabuleiro = ImageIO.read(
-                new File("Imagens/Tabuleiros/Tabuleiro-Clue-C.jpg")
-            );
+            imagemTabuleiro = ImageIO.read(new File("Imagens/Tabuleiros/Tabuleiro-Clue-C.jpg"));
         } catch (IOException e) {
             System.out.println("Erro ao carregar tabuleiro");
         }
 
         for (int i = 0; i < 6; i++) {
             try {
-                imagensDado[i] = ImageIO.read(
-                    new File("Imagens/Tabuleiros/dado" + (i + 1) + ".jpg")
-                );
+                imagensDado[i] = ImageIO.read(new File("Imagens/Tabuleiros/dado" + (i + 1) + ".jpg"));
             } catch (IOException e) {
                 System.out.println("Erro ao carregar dado" + (i + 1));
             }
@@ -176,7 +272,6 @@ class PainelTabuleiro extends JPanel {
 
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-
                 if (!podeMover) return;
 
                 int mouseX = e.getX();
@@ -185,7 +280,6 @@ class PainelTabuleiro extends JPanel {
                 double escalaX = (double) getWidth()  / IMG_W;
                 double escalaY = (double) getHeight() / IMG_H;
 
-                // ← desconta o offset ao calcular col/lin
                 int col = (int)(((mouseX / escalaX) - OFFSET_X) / CELL_W);
                 int lin = (int)(((mouseY / escalaY) - OFFSET_Y) / CELL_H);
 
@@ -196,8 +290,7 @@ class PainelTabuleiro extends JPanel {
                 System.out.println("=== DEBUG ===");
                 System.out.println("Posicao jogador: " + model.getPosicaoJogadorAtual());
                 System.out.println("idCasa clicada: " + idCasa);
-                System.out.println("col: " + col + " lin: " + lin);
-                System.out.println("Casas possíveis:" + model.getCasasPossiveis());
+                System.out.println("Casas possíveis: " + model.getCasasPossiveis().size());
                 System.out.println("=============");
 
                 try {
@@ -214,23 +307,28 @@ class PainelTabuleiro extends JPanel {
         });
     }
 
+    // =========================================================
+    // POSIÇÕES INICIAIS NO MODEL (id = lin * 24 + col)
+    // =========================================================
     private int getPosicaoInicial(String nome) {
-        if (nome.equals("Scarlet"))  return 22 * 24 + 6;
-        if (nome.equals("Mustard"))  return 17 * 24 + 1;
-        if (nome.equals("White"))    return 1  * 24 + 9;
-        if (nome.equals("Green"))    return 1  * 24 + 14;
-        if (nome.equals("Peacock"))  return 6  * 24 + 22;
-        if (nome.equals("Plum"))     return 19 * 24 + 19;
+        if (nome.equals("Scarlet"))  return scarletLin * 24 + scarletCol;
+        if (nome.equals("Mustard"))  return mustardLin * 24 + mustardCol;
+        if (nome.equals("White"))    return whiteLin   * 24 + whiteCol;
+        if (nome.equals("Green"))    return greenLin   * 24 + greenCol;
+        if (nome.equals("Peacock"))  return peacockLin * 24 + peacockCol;
+        if (nome.equals("Plum"))     return plumLin    * 24 + plumCol;
         return 0;
     }
 
+    // =========================================================
+    // DESENHO
+    // =========================================================
     private void desenharGrid(Graphics2D g2d, double escalaX, double escalaY) {
         g2d.setColor(new Color(255, 0, 0, 80));
         g2d.setFont(new Font("Arial", Font.PLAIN, 8));
 
         for (int lin = 0; lin < 25; lin++) {
             for (int col = 0; col < 24; col++) {
-                // ← offset aplicado
                 int x = (int)(OFFSET_X * escalaX + col * CELL_W * escalaX);
                 int y = (int)(OFFSET_Y * escalaY + lin * CELL_H * escalaY);
                 int w = (int)(CELL_W * escalaX);
@@ -263,7 +361,6 @@ class PainelTabuleiro extends JPanel {
             for (Casa casa : possiveis) {
                 int col = casa.getColuna();
                 int lin = casa.getLinha();
-                // ← offset aplicado
                 int x = (int)(OFFSET_X * escalaX + col * CELL_W * escalaX);
                 int y = (int)(OFFSET_Y * escalaY + lin * CELL_H * escalaY);
                 int w = (int)(CELL_W * escalaX);
@@ -282,7 +379,6 @@ class PainelTabuleiro extends JPanel {
         desenharPiao(g2d, escalaX, escalaY, plumCol,    plumLin,    new Color(128, 0, 128), "Plum",    jogadores);
 
         if (clickCol != -1 && clickLin != -1) {
-            // ← offset aplicado
             int x = (int)(OFFSET_X * escalaX + clickCol * CELL_W * escalaX);
             int y = (int)(OFFSET_Y * escalaY + clickLin * CELL_H * escalaY);
             int w = (int)(CELL_W * escalaX);
@@ -303,7 +399,6 @@ class PainelTabuleiro extends JPanel {
         int cellPxW = (int)(CELL_W * escalaX);
         int cellPxH = (int)(CELL_H * escalaY);
 
-        // ← offset aplicado
         int cx = (int)(OFFSET_X * escalaX + col * CELL_W * escalaX);
         int cy = (int)(OFFSET_Y * escalaY + lin * CELL_H * escalaY);
 
@@ -320,7 +415,6 @@ class PainelTabuleiro extends JPanel {
     }
 
     private void moverPiaoVisual(int col, int lin) {
-
         String nomeAtual = jogadores.get(jogadorAtualIdx);
 
         if      (nomeAtual.equals("Scarlet"))  { scarletCol = col; scarletLin = lin; }
@@ -333,14 +427,13 @@ class PainelTabuleiro extends JPanel {
         repaint();
     }
 
-    private JLabel labelVezDe; // ← adiciona como variável da classe
+    private JLabel labelVezDe;
 
     public void setLabelVezDe(JLabel label) {
         this.labelVezDe = label;
     }
 
     private void atualizarJogadorAtual() {
-
         nomeJogadorAtual = jogadores.get(jogadorAtualIdx);
 
         if      (nomeJogadorAtual.equals("Scarlet"))  corJogadorAtual = Color.RED;
@@ -359,6 +452,13 @@ class PainelTabuleiro extends JPanel {
     private void proximoJogador() {
         clickCol = -1;
         clickLin = -1;
+        podeMover = false;
+        animando = false;
+
+        // Para o timer caso ainda esteja rodando
+        if (timerDado != null && timerDado.isRunning()) {
+            timerDado.stop();
+        }
 
         jogadorAtualIdx++;
         if (jogadorAtualIdx >= jogadores.size()) jogadorAtualIdx = 0;
