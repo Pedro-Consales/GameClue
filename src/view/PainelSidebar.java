@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import view.TelaBlocoDeNotas;
 
 public class PainelSidebar extends JPanel {
 
