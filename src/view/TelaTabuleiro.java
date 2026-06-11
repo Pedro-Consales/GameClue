@@ -300,13 +300,12 @@ class PainelTabuleiro extends JPanel {
 
                     // Se parou numa porta, entra no cômodo
                     
-
                     Casa casaDestino = model.getTabuleiro().getCasa(idCasa);
                     if (casaDestino.isPorta()) {
                         int[] dentroComodo = encontrarCelulaCômodo(casaDestino);
                         if (dentroComodo != null) {
                             int idComodo = dentroComodo[1] * 24 + dentroComodo[0];
-                            model.usarPassagemSecreta(idComodo); // move o jogador para dentro
+                            model.usarPassagemSecreta(idComodo); // ← move model para dentro
                             col = dentroComodo[0];
                             lin = dentroComodo[1];
                         }

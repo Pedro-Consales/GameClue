@@ -35,35 +35,68 @@ public class ClueModel {
     // =========================================================
     // BFS principal
     // =========================================================
-    public List<Casa> mapearCasas(int[] dados) {
-        int passos = dados[0] + dados[1];
-        Casa origem = tabuleiro.getCasa(getJogadorAtual().getPosicao());
+   public List<Casa> mapearCasas(int[] dados) {
+    int passos = dados[0] + dados[1];
+    Casa origem = tabuleiro.getCasa(getJogadorAtual().getPosicao());
 
-        Set<Casa> visitadas = new HashSet<>();
-        Set<Casa> destinos  = new HashSet<>();
-        Queue<Casa> fila    = new LinkedList<>();
+    Set<Casa> visitadas = new HashSet<>();
+    Set<Casa> destinos  = new HashSet<>();
+    Queue<Casa> fila    = new LinkedList<>();
 
-        visitadas.add(origem);
+    visitadas.add(origem);
 
-        for (Casa vizinho : origem.getVizinhos()) {
-            expandir(origem, vizinho, visitadas, destinos, fila);
-        }
+    if (origem.isComodo()) {
+        // Flood fill para achar todas as células do cômodo
+        Set<Casa> celulasComodo = new HashSet<>();
+        Queue<Casa> filaComodo = new LinkedList<>();
+        filaComodo.add(origem);
+        celulasComodo.add(origem);
 
-        for (int nivel = 0; nivel < passos - 1; nivel++) {
-            int tamanho = fila.size();
-            for (int i = 0; i < tamanho; i++) {
-                Casa atual = fila.poll();
-                if (atual == null) continue;
-                if (atual.isComodo()) continue; // cômodo não expande no BFS
-                for (Casa vizinho : atual.getVizinhos()) {
-                    expandir(atual, vizinho, visitadas, destinos, fila);
+        while (!filaComodo.isEmpty()) {
+            Casa atual = filaComodo.poll();
+            for (Casa v : atual.getVizinhos()) {
+                if (v.isComodo() && !celulasComodo.contains(v)) {
+                    celulasComodo.add(v);
+                    filaComodo.add(v);
                 }
             }
         }
 
-        return new ArrayList<>(destinos);
+        // Pega todas as portas adjacentes ao cômodo
+        for (Casa celula : celulasComodo) {
+            for (Casa v : celula.getVizinhos()) {
+                if (v.isPorta() && !visitadas.contains(v)) {
+                    visitadas.add(v);
+                    if (passos > 1) {
+                        destinos.add(v);
+                        fila.add(v);
+                    }
+                }
+            }
+        }
+
+    } else {
+        for (Casa vizinho : origem.getVizinhos()) {
+            expandir(origem, vizinho, visitadas, destinos, fila);
+        }
     }
 
+    int niveisRestantes = passos - 1;
+
+    for (int nivel = 0; nivel < niveisRestantes; nivel++) {
+        int tamanho = fila.size();
+        for (int i = 0; i < tamanho; i++) {
+            Casa atual = fila.poll();
+            if (atual == null) continue;
+            if (atual.isComodo()) continue;
+            for (Casa vizinho : atual.getVizinhos()) {
+                expandir(atual, vizinho, visitadas, destinos, fila);
+            }
+        }
+    }
+
+    return new ArrayList<>(destinos);
+}
     /**
      * Quando chega numa porta adjacente a um cômodo,
      * faz flood fill para adicionar TODAS as células do cômodo.
