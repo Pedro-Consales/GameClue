@@ -31,6 +31,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import model.Tabuleiro;
 import model.ClueModel;
 import model.Casa;
 import java.util.List;
@@ -270,6 +271,7 @@ class PainelTabuleiro extends JPanel {
 
         setLayout(null);
 
+
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (!podeMover) return;
@@ -294,12 +296,28 @@ class PainelTabuleiro extends JPanel {
                 System.out.println("=============");
 
                 try {
-                    model.deslocarPiao(idCasa);
+                   model.deslocarPiao(idCasa);
+
+                    // Se parou numa porta, entra no cômodo
+                    
+
+                    Casa casaDestino = model.getTabuleiro().getCasa(idCasa);
+                    if (casaDestino.isPorta()) {
+                        int[] dentroComodo = encontrarCelulaCômodo(casaDestino);
+                        if (dentroComodo != null) {
+                            int idComodo = dentroComodo[1] * 24 + dentroComodo[0];
+                            model.usarPassagemSecreta(idComodo); // move o jogador para dentro
+                            col = dentroComodo[0];
+                            lin = dentroComodo[1];
+                        }
+                    }
+
                     clickCol = col;
                     clickLin = lin;
                     moverPiaoVisual(col, lin);
                     podeMover = false;
                     proximoJogador();
+
                 } catch (IllegalArgumentException ex) {
                     System.out.println("Movimento inválido para col:" + col + " lin:" + lin);
                 }
@@ -432,6 +450,18 @@ class PainelTabuleiro extends JPanel {
     public void setLabelVezDe(JLabel label) {
         this.labelVezDe = label;
     }
+
+private int[] encontrarCelulaCômodo(Casa porta) {
+    int[] dlin = {-1, 1, 0, 0};
+    int[] dcol = {0, 0, -1, 1};
+
+    for (Casa vizinho : porta.getVizinhos()) {
+        if (vizinho.isComodo()) {
+            return new int[]{vizinho.getColuna(), vizinho.getLinha()};
+        }
+    }
+    return null;
+}
 
     private void atualizarJogadorAtual() {
         nomeJogadorAtual = jogadores.get(jogadorAtualIdx);

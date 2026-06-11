@@ -1,6 +1,6 @@
 package model;
 
-class Tabuleiro {
+public class Tabuleiro {
 
     static final int LINHAS = 25;
     static final int COLUNAS = 24;
