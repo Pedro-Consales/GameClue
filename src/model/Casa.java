@@ -3,30 +3,42 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class Casa {
 
     private int id;
-
     private int linha;
     private int coluna;
-   
     private TipoCasa tipo;
+
+    // Nome do cômodo ao qual a casa pertence.
+    // Será null quando a casa não for de um cômodo.
+    private String nomeComodo;
 
     private List<Casa> vizinhos;
 
-    // referência opcional para um cômodo
-    // você pode implementar depois
-    // private Comodo comodo;
+    // Construtor mantido para compatibilidade
+    public Casa(
+            int id,
+            int linha,
+            int coluna,
+            TipoCasa tipo) {
 
-    // CONSTRUTOR
-    public Casa(int id, int linha, int coluna, TipoCasa tipo) {
+        this(id, linha, coluna, tipo, null);
+    }
+
+    // Construtor com nome do cômodo
+    public Casa(
+            int id,
+            int linha,
+            int coluna,
+            TipoCasa tipo,
+            String nomeComodo) {
 
         this.id = id;
         this.linha = linha;
         this.coluna = coluna;
         this.tipo = tipo;
+        this.nomeComodo = nomeComodo;
 
         this.vizinhos = new ArrayList<Casa>();
     }
@@ -37,12 +49,10 @@ public class Casa {
 
     public void adicionarVizinho(Casa casa) {
 
-        // evita vizinho nulo
         if (casa == null) {
             return;
         }
 
-        // evita duplicação
         if (!vizinhos.contains(casa)) {
             vizinhos.add(casa);
         }
@@ -84,6 +94,10 @@ public class Casa {
         return tipo;
     }
 
+    public String getNomeComodo() {
+        return nomeComodo;
+    }
+
     public List<Casa> getVizinhos() {
         return vizinhos;
     }
@@ -95,10 +109,24 @@ public class Casa {
     public void setTipo(TipoCasa tipo) {
         this.tipo = tipo;
     }
-    
- // Adiciona isso no Casa.java
+
+    public void setNomeComodo(String nomeComodo) {
+        this.nomeComodo = nomeComodo;
+    }
+
     @Override
     public String toString() {
-        return "Casa(id=" + id + ", lin=" + linha + ", col=" + coluna + ", tipo=" + tipo + ")";
+
+        String descricao =
+            "Casa(id=" + id
+            + ", lin=" + linha
+            + ", col=" + coluna
+            + ", tipo=" + tipo;
+
+        if (nomeComodo != null) {
+            descricao += ", comodo=" + nomeComodo;
+        }
+
+        return descricao + ")";
     }
 }

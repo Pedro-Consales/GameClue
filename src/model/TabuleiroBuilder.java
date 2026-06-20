@@ -1,10 +1,32 @@
 package model;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TabuleiroBuilder {
-	
-	
-	
+
+    // Código da matriz -> nome do cômodo
+    private static final Map<Integer, String> NOMES_COMODOS;
+
+    static {
+
+        Map<Integer, String> nomes = new HashMap<>();
+
+        nomes.put(2, "Cozinha");
+        nomes.put(3, "Sala de Música");
+        nomes.put(4, "Jardim de Inverno");
+        nomes.put(5, "Sala de Jantar");
+        nomes.put(6, "Salão de Jogos");
+        nomes.put(7, "Biblioteca");
+        nomes.put(8, "Sala de Estar");
+        nomes.put(9, "Entrada");
+        nomes.put(10, "Escritório");
+
+        NOMES_COMODOS =
+            Collections.unmodifiableMap(nomes);
+    }
+
 
     // =========================================
     // LEGENDA
@@ -78,8 +100,8 @@ public class TabuleiroBuilder {
         int linhas = GRADE.length;
         int colunas = GRADE[0].length;
 
-        Casa[][] matriz = new Casa[linhas][colunas];
-
+        Casa[][] matriz =
+            new Casa[linhas][colunas];
 
         // =========================================
         // PASSO 1 — CRIAR TODAS AS CASAS
@@ -91,9 +113,19 @@ public class TabuleiroBuilder {
 
                 int valor = GRADE[lin][col];
 
-                TipoCasa tipo = converterTipo(valor);
+                TipoCasa tipo =
+                    converterTipo(valor);
 
-                Casa casa = new Casa(lin * colunas + col, lin, col, tipo);
+                String nomeComodo =
+                    NOMES_COMODOS.get(valor);
+
+                Casa casa = new Casa(
+                    lin * colunas + col,
+                    lin,
+                    col,
+                    tipo,
+                    nomeComodo
+                );
 
                 matriz[lin][col] = casa;
             }
@@ -112,29 +144,29 @@ public class TabuleiroBuilder {
 
                 Casa atual = matriz[lin][col];
 
-                // parede não conecta
                 if (atual.isParede()) {
                     continue;
                 }
 
                 for (int i = 0; i < 4; i++) {
 
-                    int novaLin = lin + dlin[i];
-                    int novaCol = col + dcol[i];
+                    int novaLin =
+                        lin + dlin[i];
 
-                    // fora do tabuleiro
-                    if (
-                        novaLin < 0 ||
-                        novaLin >= linhas ||
-                        novaCol < 0 ||
-                        novaCol >= colunas
-                    ) {
+                    int novaCol =
+                        col + dcol[i];
+
+                    if (novaLin < 0
+                            || novaLin >= linhas
+                            || novaCol < 0
+                            || novaCol >= colunas) {
+
                         continue;
                     }
 
-                    Casa vizinho = matriz[novaLin][novaCol];
+                    Casa vizinho =
+                        matriz[novaLin][novaCol];
 
-                    // não conecta parede
                     if (vizinho.isParede()) {
                         continue;
                     }
@@ -144,18 +176,17 @@ public class TabuleiroBuilder {
             }
         }
 
-        // =========================================
-        // PASSO 3 — SALVAR MATRIZ NO TABULEIRO
-        // =========================================
-
         tabuleiro.setMatriz(matriz);
     }
 
-    // =========================================
-    // CONVERSOR DE TIPO
-    // =========================================
+    public static String getNomeComodoPorCodigo(
+            int codigo) {
 
-    private static TipoCasa converterTipo(int valor) {
+        return NOMES_COMODOS.get(codigo);
+    }
+
+    private static TipoCasa converterTipo(
+            int valor) {
 
         if (valor == 0) {
             return TipoCasa.PAREDE;
