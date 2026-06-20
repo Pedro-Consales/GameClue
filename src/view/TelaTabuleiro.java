@@ -243,7 +243,8 @@ class PainelTabuleiro extends JPanel {
     public PainelTabuleiro(ArrayList<String> jogadores) {
         this.jogadores = jogadores;
 
-        model = new ClueModel();
+        model = ClueModel.getInstance();
+        model.novaPartida();
 
         for (int i = 0; i < jogadores.size(); i++) {
             model.adicionarJogador(
@@ -252,6 +253,8 @@ class PainelTabuleiro extends JPanel {
                 getPosicaoInicial(jogadores.get(i))
             );
         }
+
+        model.prepararPartida();
 
         atualizarJogadorAtual();
 

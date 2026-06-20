@@ -8,10 +8,12 @@ class Jogador{
     private String nome;
     private int posicao;
     private List<Carta> cartas;
+    private BlocoDeNotas bloco;
 
     //Inicializador
     {
         cartas = new ArrayList<>();
+        bloco = new BlocoDeNotas();
     }
 
     //FUNÇÕES AUXILIARES
@@ -51,6 +53,10 @@ class Jogador{
 
     public List<Carta> getCartas() {
         return cartas;
+    }
+
+    public BlocoDeNotas getBloco() {
+        return bloco;
     }
 
     // SETTERS

@@ -10,7 +10,7 @@ public class ComodoTeste {
 
     @Before
     public void setUp() {
-        comodo = new Comodo(1, "Cozinha");
+        comodo = new Comodo(1, 0, 0, "Cozinha");
     }
 
     @Test
@@ -30,16 +30,14 @@ public class ComodoTeste {
 
     @Test
     public void deveAdicionarVizinho() {
-        Casa casaVizinha = new Casa();
-        casaVizinha.setId(2);
+        Casa casaVizinha = new Casa(2, 0, 1, TipoCasa.CAMINHO);
         comodo.adicionarVizinho(casaVizinha);
         assertEquals(1, comodo.getVizinhos().size());
     }
 
     @Test
     public void deveConterVizinhoCorreto() {
-        Casa casaVizinha = new Casa();
-        casaVizinha.setId(2);
+        Casa casaVizinha = new Casa(2, 0, 1, TipoCasa.CAMINHO);
         comodo.adicionarVizinho(casaVizinha);
         assertEquals(casaVizinha, comodo.getVizinhos().get(0));
     }

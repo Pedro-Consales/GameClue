@@ -28,6 +28,13 @@ class EnvelopeConfidencial {
 	public Carta getSuspeito() {
 		return this.suspeito;
 	}
+
+	// Compara a solução com os nomes de uma acusação
+	public boolean confere(String suspeitoNome, String armaNome, String comodoNome) {
+		return suspeito.getNome().equals(suspeitoNome)
+		    && arma.getNome().equals(armaNome)
+		    && comodo.getNome().equals(comodoNome);
+	}
 	
 	public void showCardsInEnvelope() {
 		

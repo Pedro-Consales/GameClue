@@ -32,7 +32,13 @@ public class PainelSidebar extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 8)));
         add(criarBotao("Próximo"));
         add(Box.createRigidArea(new Dimension(0, 8)));
-        add(criarBotao("Mostrar Cartas"));
+        JButton botaoMostrarCartas = criarBotao("Mostrar Cartas");
+        botaoMostrarCartas.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaCartas();
+            }
+        });
+        add(botaoMostrarCartas);
         add(Box.createRigidArea(new Dimension(0, 8)));
         JButton botaoBlocoNotas = criarBotao("Bloco de Notas");
         botaoBlocoNotas.addActionListener(new ActionListener() {

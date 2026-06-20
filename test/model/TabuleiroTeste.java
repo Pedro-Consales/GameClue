@@ -1,5 +1,3 @@
-// TabuleiroTest.java
-
 package model;
 
 import org.junit.Before;
@@ -14,34 +12,44 @@ public class TabuleiroTeste {
     @Before
     public void setUp() {
         tabuleiro = new Tabuleiro();
+
+        Casa[][] matriz = new Casa[Tabuleiro.LINHAS][Tabuleiro.COLUNAS];
+        for (int lin = 0; lin < Tabuleiro.LINHAS; lin++) {
+            for (int col = 0; col < Tabuleiro.COLUNAS; col++) {
+                int id = lin * Tabuleiro.COLUNAS + col;
+                matriz[lin][col] = new Casa(id, lin, col, TipoCasa.CAMINHO);
+            }
+        }
+        tabuleiro.setMatriz(matriz);
     }
 
     @Test
-    public void deveAdicionarCasa() {
+    public void deveBuscarCasaPorId() {
+        Casa casa = tabuleiro.getCasa(27); // lin 1, col 3
 
-        Casa casa = new Casa();
-        casa.setId(1);
-
-        tabuleiro.adicionarCasa(casa);
-
-        assertEquals(casa, tabuleiro.getCasa(1));
+        assertEquals(27, casa.getId());
+        assertEquals(1, casa.getLinha());
+        assertEquals(3, casa.getColuna());
     }
 
     @Test
-    public void deveConectarCasas() {
+    public void deveBuscarCasaPorLinhaColuna() {
+        Casa casa = tabuleiro.getCasa(2, 5);
 
-        Casa casa1 = new Casa();
-        Casa casa2 = new Casa();
+        assertEquals(2, casa.getLinha());
+        assertEquals(5, casa.getColuna());
+    }
 
-        casa1.setId(1);
-        casa2.setId(2);
+    @Test
+    public void deveRetornarNuloForaDaGrade() {
+        assertNull(tabuleiro.getCasa(-1, 0));
+        assertNull(tabuleiro.getCasa(0, Tabuleiro.COLUNAS));
+    }
 
-        tabuleiro.adicionarCasa(casa1);
-        tabuleiro.adicionarCasa(casa2);
-
-        tabuleiro.conectarCasas(1, 2);
-
-        assertTrue(casa1.getVizinhos().contains(casa2));
-        assertTrue(casa2.getVizinhos().contains(casa1));
+    @Test
+    public void deveConverterLinhaColunaParaId() {
+        assertEquals(27, Tabuleiro.toId(1, 3));
+        assertEquals(1, Tabuleiro.toLinha(27));
+        assertEquals(3, Tabuleiro.toColuna(27));
     }
 }
