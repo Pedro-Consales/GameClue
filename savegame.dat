@@ -1,0 +1,10 @@
+JOGADORES=Scarlet,Mustard
+POS_MODEL_Scarlet=395
+POS_VISUAL_Scarlet=11,16
+POS_MODEL_Mustard=269
+POS_VISUAL_Mustard=5,11
+JOGADOR_ATUAL=Scarlet
+BLOCO_Scarlet=Escritório|Corda|Sala de Jantar|Sala de Música|Professor Plum|Jardim de Inverno|Biblioteca|Castiçal|Entrada
+BLOCO_Mustard=Faca|Chave Inglesa|Srta. Scarlet|Revólver|Sra. White|Cozinha|Reverendo Green|Sra. Peacock|Sala de Estar|Corda|Cano de Chumbo
+MAO_Scarlet=Escritório|Corda|Sala de Jantar|Sala de Música|Professor Plum|Jardim de Inverno|Biblioteca|Castiçal|Entrada
+MAO_Mustard=Faca|Chave Inglesa|Srta. Scarlet|Revólver|Sra. White|Cozinha|Reverendo Green|Sra. Peacock|Sala de Estar

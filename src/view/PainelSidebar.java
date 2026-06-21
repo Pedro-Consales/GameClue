@@ -52,8 +52,14 @@ public class PainelSidebar extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 8)));
         add(criarBotao("Acusar"));
         add(Box.createRigidArea(new Dimension(0, 8)));
-        add(criarBotao("Salvar Jogo"));
-
+    
+        JButton botaoSalvar = criarBotao("Salvar Jogo");
+        botaoSalvar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                painelTabuleiro.salvarJogo();
+            }
+        });
+        add(botaoSalvar);
         add(Box.createVerticalGlue());
 
         // --- Info jogador da vez ---

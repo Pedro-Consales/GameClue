@@ -1543,4 +1543,39 @@ public class ClueModel implements Observado {
     EnvelopeConfidencial getEnvelope() {
         return envelope;
     }
+
+    public List<String> getCartasMarcadasJogador(String nomeJogador) {
+    for (Jogador j : jogadores) {
+        if (j.getNome().equals(nomeJogador)) {
+            List<String> nomes = new ArrayList<>();
+            for (Carta c : j.getBloco().getTodasCartasMarcadas()) {
+                nomes.add(c.getNome());
+            }
+            return nomes;
+        }
+    }
+    return new ArrayList<>();
+    }
+    public List<String> getNomesMaoJogador(String nomeJogador) {
+    for (Jogador j : jogadores) {
+        if (j.getNome().equals(nomeJogador)) {
+            List<String> nomes = new ArrayList<>();
+            for (Carta c : j.getCartas()) {
+                nomes.add(c.getNome());
+            }
+            return nomes;
+        }
+    }
+    return new ArrayList<>();
+}
+public void adicionarCartaJogador(String nomeJogador, String nomeCarta) {
+    for (Jogador j : jogadores) {
+        if (j.getNome().equals(nomeJogador)) {
+            Carta carta = criarCartaPorNome(nomeCarta);
+            j.adicionarCarta(carta);
+            j.getBloco().adicionarCartaPropria(carta);
+            return;
+        }
+    }
+}
 }

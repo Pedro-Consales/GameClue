@@ -2,6 +2,9 @@ package view;
 
 import javax.swing.JFrame;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+
 import javax.swing.JPanel;
 import javax.imageio.ImageIO;
 import javax.swing.Timer;
@@ -17,6 +20,7 @@ import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
@@ -33,8 +37,10 @@ import java.awt.event.MouseEvent;
 
 import model.Tabuleiro;
 import model.ClueModel;
+import model.SalvarJogo;
 import model.Casa;
 import java.util.List;
+import java.util.Map;
 
 public class TelaTabuleiro extends JFrame {
 
@@ -53,6 +59,24 @@ public class TelaTabuleiro extends JFrame {
         setVisible(true);
     }
 
+    public TelaTabuleiro(Map<String, String> save) {
+        setTitle("Clue - Tabuleiro");
+        setSize(1400, 1050);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        setLayout(new java.awt.BorderLayout());
+
+        String[] nomesSplit = save.get("JOGADORES").split(",");
+        ArrayList<String> jogadores = new ArrayList<>(Arrays.asList(nomesSplit));
+
+        PainelTabuleiro painelTabuleiro = new PainelTabuleiro(jogadores, save);
+        add(painelTabuleiro, java.awt.BorderLayout.CENTER);
+        add(new PainelSidebar(jogadores, painelTabuleiro), java.awt.BorderLayout.EAST);
+
+        setVisible(true);
+    }
+
     public static void main(String[] args) {
         ArrayList<String> jogadores = new ArrayList<>();
         jogadores.add("Scarlet");
@@ -63,6 +87,7 @@ public class TelaTabuleiro extends JFrame {
         jogadores.add("Plum");
         new TelaTabuleiro(jogadores);
     }
+
 }
 
 class PainelTabuleiro extends JPanel {
@@ -110,6 +135,19 @@ class PainelTabuleiro extends JPanel {
     private static final int[] RANGE_ESCRITORIO = {18, 22, 22, 23}; // cód 10
     private static final int[] RANGE_JARDIM     = {19, 22, 2, 4};  // cód 4
     private static final int[] RANGE_SALA_ESTAR = {1, 5, 20, 23};  // cód 8
+
+    public void salvarJogo() {
+        Map<String, int[]> visuais = new LinkedHashMap<>();
+        visuais.put("Scarlet", new int[]{scarletCol, scarletLin});
+        visuais.put("Mustard", new int[]{mustardCol, mustardLin});
+        visuais.put("White",   new int[]{whiteCol,   whiteLin});
+        visuais.put("Green",   new int[]{greenCol,   greenLin});
+        visuais.put("Peacock", new int[]{peacockCol, peacockLin});
+        visuais.put("Plum",    new int[]{plumCol,    plumLin});
+
+        SalvarJogo.salvar(model, jogadores, visuais);
+        JOptionPane.showMessageDialog(this, "Jogo salvo com sucesso!");
+    }
 
     // =========================================================
     // ROLAR DADOS
@@ -241,91 +279,188 @@ class PainelTabuleiro extends JPanel {
     // CONSTRUTOR
     // =========================================================
     public PainelTabuleiro(ArrayList<String> jogadores) {
-        this.jogadores = jogadores;
+    this.jogadores = jogadores;
 
-        model = ClueModel.getInstance();
-        model.novaPartida();
+    model = ClueModel.getInstance();
+    model.novaPartida();
 
-        for (int i = 0; i < jogadores.size(); i++) {
-            model.adicionarJogador(
-                i,
-                jogadores.get(i),
-                getPosicaoInicial(jogadores.get(i))
-            );
-        }
-
-        model.prepararPartida();
-
-        atualizarJogadorAtual();
-
-        try {
-            imagemTabuleiro = ImageIO.read(new File("Imagens/Tabuleiros/Tabuleiro-Clue-C.jpg"));
-        } catch (IOException e) {
-            System.out.println("Erro ao carregar tabuleiro");
-        }
-
-        for (int i = 0; i < 6; i++) {
-            try {
-                imagensDado[i] = ImageIO.read(new File("Imagens/Tabuleiros/dado" + (i + 1) + ".jpg"));
-            } catch (IOException e) {
-                System.out.println("Erro ao carregar dado" + (i + 1));
-            }
-        }
-
-        setLayout(null);
-
-
-        addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                if (!podeMover) return;
-
-                int mouseX = e.getX();
-                int mouseY = e.getY();
-
-                double escalaX = (double) getWidth()  / IMG_W;
-                double escalaY = (double) getHeight() / IMG_H;
-
-                int col = (int)(((mouseX / escalaX) - OFFSET_X) / CELL_W);
-                int lin = (int)(((mouseY / escalaY) - OFFSET_Y) / CELL_H);
-
-                System.out.println("Clique → col: " + col + " lin: " + lin);
-
-                int idCasa = lin * 24 + col;
-
-                System.out.println("=== DEBUG ===");
-                System.out.println("Posicao jogador: " + model.getPosicaoJogadorAtual());
-                System.out.println("idCasa clicada: " + idCasa);
-                System.out.println("Casas possíveis: " + model.getCasasPossiveis().size());
-                System.out.println("=============");
-
-                try {
-                   model.deslocarPiao(idCasa);
-
-                    // Se parou numa porta, entra no cômodo
-                    
-                    Casa casaDestino = model.getTabuleiro().getCasa(idCasa);
-                    if (casaDestino.isPorta()) {
-                        int[] dentroComodo = encontrarCelulaCômodo(casaDestino);
-                        if (dentroComodo != null) {
-                            int idComodo = dentroComodo[1] * 24 + dentroComodo[0];
-                            model.usarPassagemSecreta(idComodo); // ← move model para dentro
-                            col = dentroComodo[0];
-                            lin = dentroComodo[1];
-                        }
-                    }
-
-                    clickCol = col;
-                    clickLin = lin;
-                    moverPiaoVisual(col, lin);
-                    podeMover = false;
-                    proximoJogador();
-
-                } catch (IllegalArgumentException ex) {
-                    System.out.println("Movimento inválido para col:" + col + " lin:" + lin);
-                }
-            }
-        });
+    for (int i = 0; i < jogadores.size(); i++) {
+        model.adicionarJogador(
+            i,
+            jogadores.get(i),
+            getPosicaoInicial(jogadores.get(i))
+        );
     }
+
+    model.prepararPartida();
+    atualizarJogadorAtual();
+
+    try {
+        imagemTabuleiro = ImageIO.read(new File("Imagens/Tabuleiros/Tabuleiro-Clue-C.jpg"));
+    } catch (IOException e) {
+        System.out.println("Erro ao carregar tabuleiro");
+    }
+
+    for (int i = 0; i < 6; i++) {
+        try {
+            imagensDado[i] = ImageIO.read(new File("Imagens/Tabuleiros/dado" + (i + 1) + ".jpg"));
+        } catch (IOException e) {
+            System.out.println("Erro ao carregar dado" + (i + 1));
+        }
+    }
+
+    setLayout(null);
+
+    addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent e) {
+            if (!podeMover) return;
+
+            int mouseX = e.getX();
+            int mouseY = e.getY();
+
+            double escalaX = (double) getWidth()  / IMG_W;
+            double escalaY = (double) getHeight() / IMG_H;
+
+            int col = (int)(((mouseX / escalaX) - OFFSET_X) / CELL_W);
+            int lin = (int)(((mouseY / escalaY) - OFFSET_Y) / CELL_H);
+
+            int idCasa = lin * 24 + col;
+
+            try {
+                model.deslocarPiao(idCasa);
+
+                Casa casaDestino = model.getTabuleiro().getCasa(idCasa);
+                if (casaDestino.isPorta()) {
+                    int[] dentroComodo = encontrarCelulaCômodo(casaDestino);
+                    if (dentroComodo != null) {
+                        int idComodo = dentroComodo[1] * 24 + dentroComodo[0];
+                        model.usarPassagemSecreta(idComodo);
+                        col = dentroComodo[0];
+                        lin = dentroComodo[1];
+                    }
+                }
+
+                clickCol = col;
+                clickLin = lin;
+                moverPiaoVisual(col, lin);
+                podeMover = false;
+                proximoJogador();
+
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Movimento inválido para col:" + col + " lin:" + lin);
+            }
+        }
+    });
+}
+// =========================================================
+// CONSTRUTOR COM SAVE
+// =========================================================
+    public PainelTabuleiro(ArrayList<String> jogadores, Map<String, String> save) {
+    this.jogadores = jogadores;
+
+    model = ClueModel.getInstance();
+    model.novaPartida();
+
+    // Restaura jogadores com posições salvas
+    for (int i = 0; i < jogadores.size(); i++) {
+        String nome = jogadores.get(i);
+        int posModel = Integer.parseInt(save.get("POS_MODEL_" + nome));
+        model.adicionarJogador(i, nome, posModel);
+    }
+
+    for (String nome : jogadores) {
+        String blocoStr = save.get("BLOCO_" + nome);
+        if (blocoStr != null && !blocoStr.isEmpty()) {
+            for (String nomeCarta : blocoStr.split("\\|")) {
+                model.marcarCartaReveladaJogadorAtual(nomeCarta, true);
+            }
+        }
+    }
+    // Restaura cartas da mão
+    for (String nome : jogadores) {
+        String maoStr = save.get("MAO_" + nome);
+        if (maoStr != null && !maoStr.isEmpty()) {
+            for (String nomeCarta : maoStr.split("\\|")) {
+                model.adicionarCartaJogador(nome, nomeCarta);
+            }
+        }
+    }
+    // Restaura posições visuais
+    for (String nome : jogadores) {
+        String[] vis = save.get("POS_VISUAL_" + nome).split(",");
+        int col = Integer.parseInt(vis[0]);
+        int lin = Integer.parseInt(vis[1]);
+        if      (nome.equals("Scarlet"))  { scarletCol = col; scarletLin = lin; }
+        else if (nome.equals("Mustard"))  { mustardCol = col; mustardLin = lin; }
+        else if (nome.equals("White"))    { whiteCol   = col; whiteLin   = lin; }
+        else if (nome.equals("Green"))    { greenCol   = col; greenLin   = lin; }
+        else if (nome.equals("Peacock"))  { peacockCol = col; peacockLin = lin; }
+        else if (nome.equals("Plum"))     { plumCol    = col; plumLin    = lin; }
+    }
+
+    // Restaura jogador atual
+    String nomeAtual = save.get("JOGADOR_ATUAL");
+    jogadorAtualIdx = jogadores.indexOf(nomeAtual);
+    if (jogadorAtualIdx < 0) jogadorAtualIdx = 0;
+
+    atualizarJogadorAtual();
+
+    try {
+        imagemTabuleiro = ImageIO.read(new File("Imagens/Tabuleiros/Tabuleiro-Clue-C.jpg"));
+    } catch (IOException e) {
+        System.out.println("Erro ao carregar tabuleiro");
+    }
+
+    for (int i = 0; i < 6; i++) {
+        try {
+            imagensDado[i] = ImageIO.read(new File("Imagens/Tabuleiros/dado" + (i + 1) + ".jpg"));
+        } catch (IOException e) {
+            System.out.println("Erro ao carregar dado" + (i + 1));
+        }
+    }
+
+    setLayout(null);
+    addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent e) {
+            if (!podeMover) return;
+
+            int mouseX = e.getX();
+            int mouseY = e.getY();
+
+            double escalaX = (double) getWidth()  / IMG_W;
+            double escalaY = (double) getHeight() / IMG_H;
+
+            int col = (int)(((mouseX / escalaX) - OFFSET_X) / CELL_W);
+            int lin = (int)(((mouseY / escalaY) - OFFSET_Y) / CELL_H);
+
+            int idCasa = lin * 24 + col;
+
+            try {
+                model.deslocarPiao(idCasa);
+
+                Casa casaDestino = model.getTabuleiro().getCasa(idCasa);
+                if (casaDestino.isPorta()) {
+                    int[] dentroComodo = encontrarCelulaCômodo(casaDestino);
+                    if (dentroComodo != null) {
+                        int idComodo = dentroComodo[1] * 24 + dentroComodo[0];
+                        model.usarPassagemSecreta(idComodo);
+                        col = dentroComodo[0];
+                        lin = dentroComodo[1];
+                    }
+                }
+
+                clickCol = col;
+                clickLin = lin;
+                moverPiaoVisual(col, lin);
+                podeMover = false;
+                proximoJogador();
+
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Movimento inválido para col:" + col + " lin:" + lin);
+            }
+        }
+    });
+}
 
     // =========================================================
     // POSIÇÕES INICIAIS NO MODEL (id = lin * 24 + col)
