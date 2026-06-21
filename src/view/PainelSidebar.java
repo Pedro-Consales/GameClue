@@ -4,16 +4,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import view.TelaBlocoDeNotas;
 
-public class PainelSidebar extends JPanel {
+import model.ClueModel;
+import model.Observador;
+
+public class PainelSidebar extends JPanel implements Observador {
 
     // Referência ao modelo para chamar setDadosParaTeste e usarPassagemSecreta
     private PainelTabuleiro painelTabuleiro;
+    private ClueModel model;
+
+    private JButton botaoPalpite;
+    private JButton botaoAcusar;
 
     public PainelSidebar(ArrayList<String> jogadores, PainelTabuleiro painelTabuleiro) {
 
         this.painelTabuleiro = painelTabuleiro;
+        this.model = ClueModel.getInstance();
 
         setPreferredSize(new Dimension(220, 0));
         setBackground(new Color(45, 45, 45));
@@ -30,7 +37,13 @@ public class PainelSidebar extends JPanel {
         add(botaoPassagem);
 
         add(Box.createRigidArea(new Dimension(0, 8)));
-        add(criarBotao("Próximo"));
+        JButton botaoProximo = criarBotao("Próximo");
+        botaoProximo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                painelTabuleiro.passarTurno();
+            }
+        });
+        add(botaoProximo);
         add(Box.createRigidArea(new Dimension(0, 8)));
         JButton botaoMostrarCartas = criarBotao("Mostrar Cartas");
         botaoMostrarCartas.addActionListener(new ActionListener() {
@@ -48,9 +61,27 @@ public class PainelSidebar extends JPanel {
         });
         add(botaoBlocoNotas);
         add(Box.createRigidArea(new Dimension(0, 8)));
-        add(criarBotao("Palpite"));
+
+        botaoPalpite = criarBotao("Palpite");
+        botaoPalpite.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                painelTabuleiro.abrirPalpite(
+                    SwingUtilities.getWindowAncestor(PainelSidebar.this)
+                );
+            }
+        });
+        add(botaoPalpite);
         add(Box.createRigidArea(new Dimension(0, 8)));
-        add(criarBotao("Acusar"));
+
+        botaoAcusar = criarBotao("Acusar");
+        botaoAcusar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                painelTabuleiro.abrirAcusacao(
+                    SwingUtilities.getWindowAncestor(PainelSidebar.this)
+                );
+            }
+        });
+        add(botaoAcusar);
         add(Box.createRigidArea(new Dimension(0, 8)));
     
         JButton botaoSalvar = criarBotao("Salvar Jogo");
@@ -151,6 +182,27 @@ public class PainelSidebar extends JPanel {
         add(botaoEscolherDados);
 
         add(Box.createRigidArea(new Dimension(0, 8)));
+
+        model.adicionarObservador(this);
+        atualizarBotoes();
+
+        addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorRemoved(javax.swing.event.AncestorEvent e) {
+                model.removerObservador(PainelSidebar.this);
+            }
+            public void ancestorAdded(javax.swing.event.AncestorEvent e) {}
+            public void ancestorMoved(javax.swing.event.AncestorEvent e) {}
+        });
+    }
+
+    @Override
+    public void atualizar() {
+        atualizarBotoes();
+    }
+
+    private void atualizarBotoes() {
+        botaoPalpite.setEnabled(model.podeFazerPalpiteJogadorAtual());
+        botaoAcusar.setEnabled(model.podeFazerAcusacaoJogadorAtual());
     }
 
     private JButton criarBotao(String texto) {

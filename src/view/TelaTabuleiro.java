@@ -39,6 +39,8 @@ import model.Tabuleiro;
 import model.ClueModel;
 import model.SalvarJogo;
 import model.Casa;
+import model.ResultadoPalpite;
+import model.ResultadoAcusacao;
 import java.util.List;
 import java.util.Map;
 
@@ -155,6 +157,7 @@ class PainelTabuleiro extends JPanel {
     public void rolarDados(JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
         if (animando) return;
         if (podeMover) return;
+        if (model.isJogoEncerrado()) return;
 
         int[] dados = model.lancarDados();
         resultadoDado1 = dados[0];
@@ -220,6 +223,7 @@ class PainelTabuleiro extends JPanel {
             return;
         }
         if (animando) return;
+        if (model.isJogoEncerrado()) return;
 
         int posAtual = model.getPosicaoJogadorAtual();
         int linAtual = posAtual / 24;
@@ -243,7 +247,12 @@ class PainelTabuleiro extends JPanel {
 
         model.usarPassagemSecreta(idDestino);
         moverPiaoVisual(destino[0], destino[1]);
-        proximoJogador();
+
+        // A Passagem Secreta sempre leva a um cômodo, então o turno
+        // não passa automaticamente: o jogador pode Palpitar ou Acusar.
+        clickCol = destino[0];
+        clickLin = destino[1];
+        repaint();
     }
 
     /**
@@ -314,6 +323,7 @@ class PainelTabuleiro extends JPanel {
     addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
             if (!podeMover) return;
+            if (model.isJogoEncerrado()) return;
 
             int mouseX = e.getX();
             int mouseY = e.getY();
@@ -344,10 +354,22 @@ class PainelTabuleiro extends JPanel {
                 clickLin = lin;
                 moverPiaoVisual(col, lin);
                 podeMover = false;
-                proximoJogador();
 
-            } catch (IllegalArgumentException ex) {
-                System.out.println("Movimento inválido para col:" + col + " lin:" + lin);
+                // Regra: se a casa final for de CAMINHO, o turno passa
+                // automaticamente. Se for COMODO, o jogador permanece com
+                // a vez para poder Palpitar ou Acusar antes de finalizar.
+                Casa casaFinal = model.getTabuleiro().getCasa(
+                    clickLin * 24 + clickCol
+                );
+
+                if (casaFinal != null && casaFinal.isComodo()) {
+                    repaint();
+                } else {
+                    proximoJogador();
+                }
+
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                System.out.println("Movimento inválido para col:" + col + " lin:" + lin + " (" + ex.getMessage() + ")");
             }
         }
     });
@@ -423,6 +445,7 @@ class PainelTabuleiro extends JPanel {
     addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
             if (!podeMover) return;
+            if (model.isJogoEncerrado()) return;
 
             int mouseX = e.getX();
             int mouseY = e.getY();
@@ -453,10 +476,22 @@ class PainelTabuleiro extends JPanel {
                 clickLin = lin;
                 moverPiaoVisual(col, lin);
                 podeMover = false;
-                proximoJogador();
 
-            } catch (IllegalArgumentException ex) {
-                System.out.println("Movimento inválido para col:" + col + " lin:" + lin);
+                // Regra: se a casa final for de CAMINHO, o turno passa
+                // automaticamente. Se for COMODO, o jogador permanece com
+                // a vez para poder Palpitar ou Acusar antes de finalizar.
+                Casa casaFinal = model.getTabuleiro().getCasa(
+                    clickLin * 24 + clickCol
+                );
+
+                if (casaFinal != null && casaFinal.isComodo()) {
+                    repaint();
+                } else {
+                    proximoJogador();
+                }
+
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                System.out.println("Movimento inválido para col:" + col + " lin:" + lin + " (" + ex.getMessage() + ")");
             }
         }
     });
@@ -616,6 +651,8 @@ private int[] encontrarCelulaCômodo(Casa porta) {
         }
     }
 
+    // Chamado pelo movimento automático (caminho) e pela passagem secreta
+    // quando ela cair em caminho (não ocorre hoje, mas mantém o nome interno).
     private void proximoJogador() {
         clickCol = -1;
         clickLin = -1;
@@ -627,11 +664,193 @@ private int[] encontrarCelulaCômodo(Casa porta) {
             timerDado.stop();
         }
 
-        jogadorAtualIdx++;
-        if (jogadorAtualIdx >= jogadores.size()) jogadorAtualIdx = 0;
-
         model.proximoJogador();
+
+        if (model.isJogoEncerrado()) {
+            tratarFimDeJogo();
+            return;
+        }
+
+        // Sincroniza o índice local da View com o jogador atual do Model,
+        // já que o Model pula jogadores eliminados internamente.
+        String nomeAtualModel = model.getNomeJogadorAtual();
+        int idx = jogadores.indexOf(nomeAtualModel);
+        if (idx >= 0) {
+            jogadorAtualIdx = idx;
+        }
+
         atualizarJogadorAtual();
         repaint();
+    }
+
+    // =========================================================
+    // PASSAR TURNO (botão "Próximo" da sidebar)
+    // =========================================================
+    public void passarTurno() {
+        if (animando) return;
+        if (model.isJogoEncerrado()) return;
+        proximoJogador();
+    }
+
+    // =========================================================
+    // FIM DE JOGO
+    // =========================================================
+    private void tratarFimDeJogo() {
+        String vencedor = model.getNomeVencedor();
+
+        if (vencedor != null) {
+            JOptionPane.showMessageDialog(
+                this,
+                vencedor + " venceu a partida!\n\nA acusação estava correta.",
+                "Fim de Jogo",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            JOptionPane.showMessageDialog(
+                this,
+                "Todos os jogadores foram eliminados.\nNão há vencedor nesta partida.",
+                "Fim de Jogo",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+
+        podeMover = false;
+        repaint();
+    }
+
+    // =========================================================
+    // PALPITE
+    // =========================================================
+    public void abrirPalpite(java.awt.Window owner) {
+        if (animando) return;
+
+        if (!model.podeFazerPalpiteJogadorAtual()) {
+            JOptionPane.showMessageDialog(
+                owner,
+                "Você só pode fazer um palpite quando está em um cômodo\n"
+                + "e ainda não usou seu palpite neste turno.",
+                "Palpite indisponível",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        String comodoAtual = model.getNomeComodoAtual();
+
+        new TelaPalpite(owner, false, comodoAtual, new TelaPalpite.OnConfirmar() {
+            @Override
+            public void confirmar(String suspeito, String arma, String comodo) {
+                processarPalpite(owner, suspeito, arma);
+            }
+        }).setVisible(true);
+    }
+
+    private void processarPalpite(java.awt.Window owner, String suspeito, String arma) {
+        ResultadoPalpite resultado = model.fazerPalpite(suspeito, arma);
+
+        // Reflete visualmente o suspeito movido para o cômodo atual,
+        // caso o Model tenha conseguido mover o peão correspondente.
+        if (resultado.isSuspeitoMovido()) {
+            sincronizarPosicaoVisualDoSuspeito(suspeito);
+        }
+
+        String mensagem = resultado.getMensagem();
+
+        if (resultado.isRefutado()) {
+            mensagem += "\n\nCarta mostrada: " + resultado.getCartaMostrada();
+        }
+
+        JOptionPane.showMessageDialog(
+            owner,
+            mensagem,
+            "Resultado do Palpite",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+        repaint();
+    }
+
+    // Atualiza col/lin visuais de um suspeito a partir da posição (id)
+    // que o Model já calculou internamente para o respectivo Jogador.
+    private void sincronizarPosicaoVisualDoSuspeito(String suspeitoNomeCompleto) {
+        Map<String, String> nomeCurto = new LinkedHashMap<>();
+        nomeCurto.put("Coronel Mustard",  "Mustard");
+        nomeCurto.put("Srta. Scarlet",    "Scarlet");
+        nomeCurto.put("Professor Plum",   "Plum");
+        nomeCurto.put("Reverendo Green",  "Green");
+        nomeCurto.put("Sra. White",       "White");
+        nomeCurto.put("Sra. Peacock",     "Peacock");
+
+        String curto = nomeCurto.get(suspeitoNomeCompleto);
+        if (curto == null || !jogadores.contains(curto)) {
+            return;
+        }
+
+        Integer posicao = model.getPosicoesJogadores().get(curto);
+        if (posicao == null) {
+            return;
+        }
+
+        int lin = posicao / 24;
+        int col = posicao % 24;
+
+        if      (curto.equals("Scarlet"))  { scarletCol = col; scarletLin = lin; }
+        else if (curto.equals("Mustard"))  { mustardCol = col; mustardLin = lin; }
+        else if (curto.equals("White"))    { whiteCol   = col; whiteLin   = lin; }
+        else if (curto.equals("Green"))    { greenCol   = col; greenLin   = lin; }
+        else if (curto.equals("Peacock"))  { peacockCol = col; peacockLin = lin; }
+        else if (curto.equals("Plum"))     { plumCol    = col; plumLin    = lin; }
+    }
+
+    // =========================================================
+    // ACUSAÇÃO FINAL
+    // =========================================================
+    public void abrirAcusacao(java.awt.Window owner) {
+        if (animando) return;
+
+        if (!model.podeFazerAcusacaoJogadorAtual()) {
+            JOptionPane.showMessageDialog(
+                owner,
+                "Você só pode fazer a acusação final quando está em um cômodo.",
+                "Acusação indisponível",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        new TelaPalpite(owner, true, null, new TelaPalpite.OnConfirmar() {
+            @Override
+            public void confirmar(String suspeito, String arma, String comodo) {
+                processarAcusacao(owner, suspeito, arma, comodo);
+            }
+        }).setVisible(true);
+    }
+
+    private void processarAcusacao(java.awt.Window owner, String suspeito, String arma, String comodo) {
+        ResultadoAcusacao resultado = model.fazerAcusacaoFinal(suspeito, arma, comodo);
+
+        String titulo = resultado.isCorreta() ? "Acusação Correta!" : "Acusação Incorreta";
+        int tipoMensagem = resultado.isCorreta()
+            ? JOptionPane.INFORMATION_MESSAGE
+            : JOptionPane.ERROR_MESSAGE;
+
+        JOptionPane.showMessageDialog(
+            owner,
+            resultado.getMensagem(),
+            titulo,
+            tipoMensagem
+        );
+
+        repaint();
+
+        if (model.isJogoEncerrado()) {
+            tratarFimDeJogo();
+        }
+        // Se a acusação foi incorreta e o jogo não encerrou, o jogador
+        // foi eliminado dos turnos, mas o turno ainda precisa passar
+        // (ele continua podendo refutar palpites de outros, só não joga mais).
+        else if (!resultado.isCorreta()) {
+            proximoJogador();
+        }
     }
 }
