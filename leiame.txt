@@ -1,0 +1,101 @@
+========================================================================
+PROJETO ECLIPSE - JOGO CLUE
+========================================================================
+
+------------------------------------------------------------------------
+COMPONENTES DO GRUPO
+------------------------------------------------------------------------
+Matricula   Nome
+2410238     PEDRO CONSALES MARGARONIS
+2312924     BRUNO KUBUDI CARDEMAN
+2411194     FELIPE VANZIN DOS SANTOS ROCHA
+
+Nome do projeto: 2410238-2312924-2411194
+
+------------------------------------------------------------------------
+CLASSE COM O METODO MAIN
+------------------------------------------------------------------------
+A classe que contem o metodo main e:
+
+    view.TelaInicial
+
+(arquivo: src/view/TelaInicial.java)
+
+Para executar o jogo, rode a classe view.TelaInicial. Ela abre a tela
+inicial, com as opcoes "Novo Jogo" e "Continuar".
+
+------------------------------------------------------------------------
+FORMATO DO ARQUIVO DE SALVAMENTO DO ESTADO DA PARTIDA
+------------------------------------------------------------------------
+O estado de uma partida e salvo no arquivo de texto:
+
+    savegame.dat
+
+(localizado na raiz do projeto)
+
+O arquivo e um texto simples (UTF-8), com uma informacao por linha, no
+formato CHAVE=VALOR. As chaves sao lidas/escritas pela classe
+model.SalvarJogo. A ordem das linhas nao importa na leitura; a leitura
+ignora qualquer linha que nao possua o caractere '='.
+
+Descricao de cada chave:
+
+1) JOGADORES=<nome1>,<nome2>,...
+   Lista dos nomes dos jogadores da partida, separados por VIRGULA.
+   Os demais campos referenciam esses nomes.
+   Ex.: JOGADORES=Mustard,White,Green,Peacock
+
+2) POS_MODEL_<nome>=<inteiro>
+   Posicao do jogador <nome> no model (indice/casa interno do tabuleiro).
+   Ex.: POS_MODEL_Mustard=293
+
+3) POS_VISUAL_<nome>=<linha>,<coluna>
+   Posicao VISUAL do jogador <nome> no tabuleiro da tela, no formato
+   linha,coluna (dois inteiros separados por VIRGULA).
+   Ex.: POS_VISUAL_Mustard=5,12
+
+4) JOGADOR_ATUAL=<nome>
+   Nome do jogador de quem e a vez (jogador atual).
+   Ex.: JOGADOR_ATUAL=Mustard
+
+5) BLOCO_<nome>=<carta1>|<carta2>|...
+   Cartas marcadas pelo jogador <nome> no seu bloco de notas, separadas
+   por BARRA VERTICAL ( | ). Pode estar vazio.
+   Ex.: BLOCO_Green=Corda|Faca|Sala de Jantar|Biblioteca
+
+6) MAO_<nome>=<carta1>|<carta2>|...
+   Cartas que estao na mao do jogador <nome>, separadas por BARRA
+   VERTICAL ( | ). Pode estar vazio.
+   Ex.: MAO_Green=Corda|Faca|Sala de Jantar|Biblioteca
+
+Observacoes:
+- Existe um par POS_MODEL_<nome> e POS_VISUAL_<nome> para cada nome
+  listado em JOGADORES.
+- Existe um BLOCO_<nome> e um MAO_<nome> para cada nome listado em
+  JOGADORES.
+- O separador de jogadores em JOGADORES e a VIRGULA ( , ); o separador
+  de cartas em BLOCO_ e MAO_ e a BARRA VERTICAL ( | ); o separador de
+  coordenadas em POS_VISUAL_ e a VIRGULA ( , ).
+
+------------------------------------------------------------------------
+EXEMPLO COMPLETO DE ARQUIVO savegame.dat
+------------------------------------------------------------------------
+JOGADORES=Mustard,White,Green,Peacock
+POS_MODEL_Mustard=293
+POS_VISUAL_Mustard=5,12
+POS_MODEL_White=203
+POS_VISUAL_White=11,8
+POS_MODEL_Green=304
+POS_VISUAL_Green=16,12
+POS_MODEL_Peacock=400
+POS_VISUAL_Peacock=16,16
+JOGADOR_ATUAL=Mustard
+BLOCO_Mustard=Escritorio|Coronel Mustard|Cano de Chumbo|Salao de Jogos|Sala de Musica
+BLOCO_White=Reverendo Green|Sra. Peacock|Revolver|Srta. Scarlet|Entrada
+BLOCO_Green=Corda|Faca|Sala de Jantar|Biblioteca
+BLOCO_Peacock=Sala de Estar|Jardim de Inverno|Castical|Sra. White
+MAO_Mustard=Escritorio|Coronel Mustard|Cano de Chumbo|Salao de Jogos|Sala de Musica
+MAO_White=Reverendo Green|Sra. Peacock|Revolver|Srta. Scarlet|Entrada
+MAO_Green=Corda|Faca|Sala de Jantar|Biblioteca
+MAO_Peacock=Sala de Estar|Jardim de Inverno|Castical|Sra. White
+========================================================================
