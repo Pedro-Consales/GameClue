@@ -1307,18 +1307,25 @@ public class ClueModel implements Observado {
             );
         }
 
-        for (Jogador jogador :
-                jogadores) {
+        // A porta é uma casa de passagem: o jogador não permanece nela
+        // (é levado para dentro do cômodo em seguida). Por isso ela não
+        // bloqueia o movimento quando ocupada por outro jogador. As demais
+        // casas (caminho) continuam não podendo receber dois piões.
+        if (!casa.isPorta()) {
 
-            if (jogador != getJogadorAtual()
-                    && jogador.getPosicao()
-                    == idCasa) {
+            for (Jogador jogador :
+                    jogadores) {
 
-                throw new IllegalArgumentException(
-                    "Movimento inválido! "
-                    + "Casa ocupada por "
-                    + jogador.getNome()
-                );
+                if (jogador != getJogadorAtual()
+                        && jogador.getPosicao()
+                        == idCasa) {
+
+                    throw new IllegalArgumentException(
+                        "Movimento inválido! "
+                        + "Casa ocupada por "
+                        + jogador.getNome()
+                    );
+                }
             }
         }
 
