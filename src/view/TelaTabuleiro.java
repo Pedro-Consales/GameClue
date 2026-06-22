@@ -714,6 +714,11 @@ private int[] encontrarCelulaCômodo(Casa porta) {
     private void tratarFimDeJogo() {
         String vencedor = model.getNomeVencedor();
 
+        System.out.println(
+            "[DEBUG] tratarFimDeJogo() -> jogo encerrado. Vencedor="
+            + (vencedor == null ? "nenhum" : vencedor)
+        );
+
         if (vencedor != null) {
             JOptionPane.showMessageDialog(
                 this,
@@ -732,6 +737,12 @@ private int[] encontrarCelulaCômodo(Casa porta) {
 
         podeMover = false;
         repaint();
+
+        // Encerra o jogo logo após o fim da partida (acusação correta ou
+        // quando não restam jogadores ativos). O diálogo acima é modal, então
+        // o fechamento ocorre somente depois que o usuário confirma a mensagem.
+        System.out.println("[DEBUG] tratarFimDeJogo() -> fechando o jogo");
+        System.exit(0);
     }
 
     // =========================================================
