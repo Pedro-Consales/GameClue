@@ -176,6 +176,8 @@ public class ClueModel implements Observado {
 
     public void novaPartida() {
 
+        System.out.println("[DEBUG] novaPartida() -> reiniciando estado da partida");
+
         jogadores = new ArrayList<>();
 
         jogadorAtual = 0;
@@ -195,7 +197,13 @@ public class ClueModel implements Observado {
 
     public void prepararPartida() {
 
+        System.out.println(
+            "[DEBUG] prepararPartida() -> sorteando envelope e distribuindo cartas para "
+            + jogadores.size() + " jogador(es)"
+        );
+
         if (jogadores.isEmpty()) {
+            System.out.println("[DEBUG] prepararPartida() -> sem jogadores, abortando");
             return;
         }
 
@@ -440,6 +448,12 @@ public class ClueModel implements Observado {
             String nome,
             boolean marcar) {
 
+        System.out.println(
+            "[DEBUG] marcarCartaReveladaJogadorAtual() -> jogador="
+            + getNomeJogadorAtual() + ", carta=" + nome
+            + ", marcar=" + marcar
+        );
+
         BlocoDeNotas bloco =
             getJogadorAtual().getBloco();
 
@@ -467,12 +481,22 @@ public class ClueModel implements Observado {
             String arma,
             String comodo) {
 
-        return envelope != null
+        boolean resultado =
+            envelope != null
             && envelope.confere(
                 suspeito,
                 arma,
                 comodo
             );
+
+        System.out.println(
+            "[DEBUG] verificarAcusacao() -> suspeito=" + suspeito
+            + ", arma=" + arma + ", comodo=" + comodo
+            + " | envelope=" + (envelope == null ? "null" : "presente")
+            + " | resultado=" + resultado
+        );
+
+        return resultado;
     }
 
     private Carta criarCartaPorNome(
@@ -524,6 +548,12 @@ public class ClueModel implements Observado {
         ultimoDado =
             new int[]{valor1, valor2};
 
+        System.out.println(
+            "[DEBUG] lancarDados() -> jogador=" + getNomeJogadorAtual()
+            + ", dado1=" + valor1 + ", dado2=" + valor2
+            + ", total=" + (valor1 + valor2)
+        );
+
         /*
          * Observer:
          * a View será atualizada após
@@ -570,6 +600,12 @@ public class ClueModel implements Observado {
     public ResultadoPalpite fazerPalpite(
             String suspeito,
             String arma) {
+
+        System.out.println(
+            "[DEBUG] fazerPalpite() -> autor=" + getNomeJogadorAtual()
+            + ", suspeito=" + suspeito + ", arma=" + arma
+            + ", comodo=" + getNomeComodoAtual()
+        );
 
         validarPartidaEmAndamento();
 
@@ -709,6 +745,14 @@ public class ClueModel implements Observado {
                 + "refutar o palpite.";
         }
 
+        System.out.println(
+            "[DEBUG] fazerPalpite() resultado -> refutado=" + refutado
+            + ", quemRefutou="
+            + (jogadorQueRefutou == null ? "ninguém" : jogadorQueRefutou.getNome())
+            + ", cartaMostrada="
+            + (cartaMostrada == null ? "nenhuma" : cartaMostrada.getNome())
+        );
+
         ultimoResultadoPalpite =
             new ResultadoPalpite(
                 autor.getNome(),
@@ -754,6 +798,12 @@ public class ClueModel implements Observado {
             String suspeito,
             String arma,
             String comodo) {
+
+        System.out.println(
+            "[DEBUG] fazerAcusacaoFinal() -> acusador=" + getNomeJogadorAtual()
+            + ", suspeito=" + suspeito + ", arma=" + arma + ", comodo=" + comodo
+            + " | envelope=" + (envelope == null ? "null" : "presente")
+        );
 
         validarPartidaEmAndamento();
 
@@ -810,6 +860,10 @@ public class ClueModel implements Observado {
                 arma,
                 comodo
             );
+
+        System.out.println(
+            "[DEBUG] fazerAcusacaoFinal() resultado -> correta=" + correta
+        );
 
         String mensagem;
 
@@ -1286,6 +1340,11 @@ public class ClueModel implements Observado {
     public void deslocarPiao(
             int idCasa) {
 
+        System.out.println(
+            "[DEBUG] deslocarPiao() -> jogador=" + getNomeJogadorAtual()
+            + ", origem=" + getPosicaoJogadorAtual() + ", destino(id)=" + idCasa
+        );
+
         validarPartidaEmAndamento();
 
         Casa casa =
@@ -1335,6 +1394,11 @@ public class ClueModel implements Observado {
             if (casaPossivel.getId()
                     == idCasa) {
 
+                System.out.println(
+                    "[DEBUG] deslocarPiao() -> movimento válido, jogador movido para id="
+                    + idCasa
+                );
+
                 getJogadorAtual()
                     .mover(idCasa);
 
@@ -1357,6 +1421,11 @@ public class ClueModel implements Observado {
 
     public void usarPassagemSecreta(
             int idDestino) {
+
+        System.out.println(
+            "[DEBUG] usarPassagemSecreta() -> jogador=" + getNomeJogadorAtual()
+            + ", destino(id)=" + idDestino
+        );
 
         validarPartidaEmAndamento();
 
@@ -1419,6 +1488,10 @@ public class ClueModel implements Observado {
         ultimaCartaExibida = null;
         ultimoDado = new int[]{0, 0};
 
+        System.out.println(
+            "[DEBUG] proximoJogador() -> agora é a vez de " + getNomeJogadorAtual()
+        );
+
         notificarObservadores();
     }
 
@@ -1468,6 +1541,11 @@ public class ClueModel implements Observado {
             int id,
             String nome,
             int posicaoInicial) {
+
+        System.out.println(
+            "[DEBUG] adicionarJogador() -> id=" + id + ", nome=" + nome
+            + ", posicaoInicial=" + posicaoInicial
+        );
 
         Jogador jogador =
             new Jogador();
@@ -1551,6 +1629,28 @@ public class ClueModel implements Observado {
         return envelope;
     }
 
+    /*
+     * Restaura o envelope confidencial (solução) a partir dos nomes
+     * salvos. Usado ao continuar um jogo salvo, para que a solução
+     * permaneça a mesma da partida original.
+     */
+    public void restaurarEnvelope(
+            String suspeito,
+            String arma,
+            String comodo) {
+
+        System.out.println(
+            "[DEBUG] restaurarEnvelope() -> suspeito=" + suspeito
+            + ", arma=" + arma + ", comodo=" + comodo
+        );
+
+        envelope = new EnvelopeConfidencial(
+            criarCartaPorNome(suspeito),
+            criarCartaPorNome(arma),
+            criarCartaPorNome(comodo)
+        );
+    }
+
     public List<String> getCartasMarcadasJogador(String nomeJogador) {
     for (Jogador j : jogadores) {
         if (j.getNome().equals(nomeJogador)) {
@@ -1576,6 +1676,10 @@ public class ClueModel implements Observado {
     return new ArrayList<>();
 }
 public void adicionarCartaJogador(String nomeJogador, String nomeCarta) {
+    System.out.println(
+        "[DEBUG] adicionarCartaJogador() -> jogador=" + nomeJogador
+        + ", carta=" + nomeCarta
+    );
     for (Jogador j : jogadores) {
         if (j.getNome().equals(nomeJogador)) {
             Carta carta = criarCartaPorNome(nomeCarta);
