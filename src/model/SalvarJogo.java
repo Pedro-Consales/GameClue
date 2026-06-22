@@ -28,6 +28,17 @@ public class SalvarJogo {
             // Jogador atual
             pw.println("JOGADOR_ATUAL=" + model.getNomeJogadorAtual());
 
+            // Envelope confidencial (solução da partida).
+            // Precisa ser salvo para que a solução continue a mesma ao
+            // continuar um jogo salvo; caso contrário a acusação nunca
+            // confere depois de reiniciar pelo "Continuar".
+            EnvelopeConfidencial envelope = model.getEnvelope();
+            if (envelope != null) {
+                pw.println("ENVELOPE_SUSPEITO=" + envelope.getSuspeito().getNome());
+                pw.println("ENVELOPE_ARMA=" + envelope.getArma().getNome());
+                pw.println("ENVELOPE_COMODO=" + envelope.getComodo().getNome());
+            }
+
             // Cartas de cada jogador no bloco de notas
             for (String nome : nomesJogadores) {
                 List<String> marcadas = model.getCartasMarcadasJogador(nome);

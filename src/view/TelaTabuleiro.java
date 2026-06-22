@@ -139,6 +139,7 @@ class PainelTabuleiro extends JPanel {
     private static final int[] RANGE_SALA_ESTAR = {1, 5, 20, 23};  // cód 8
 
     public void salvarJogo() {
+        System.out.println("[DEBUG] salvarJogo() -> salvando estado da partida em savegame.dat");
         Map<String, int[]> visuais = new LinkedHashMap<>();
         visuais.put("Scarlet", new int[]{scarletCol, scarletLin});
         visuais.put("Mustard", new int[]{mustardCol, mustardLin});
@@ -155,6 +156,7 @@ class PainelTabuleiro extends JPanel {
     // ROLAR DADOS
     // =========================================================
     public void rolarDados(JLabel labelDado1, JLabel labelDado2, JLabel labelNumero) {
+        System.out.println("[DEBUG] rolarDados() -> jogador solicitou rolagem dos dados");
         if (animando) return;
         if (podeMover) return;
         if (model.isJogoEncerrado()) return;
@@ -288,6 +290,7 @@ class PainelTabuleiro extends JPanel {
     // CONSTRUTOR
     // =========================================================
     public PainelTabuleiro(ArrayList<String> jogadores) {
+    System.out.println("[DEBUG] PainelTabuleiro() -> iniciando NOVO jogo com jogadores=" + jogadores);
     this.jogadores = jogadores;
 
     model = ClueModel.getInstance();
@@ -378,6 +381,7 @@ class PainelTabuleiro extends JPanel {
 // CONSTRUTOR COM SAVE
 // =========================================================
     public PainelTabuleiro(ArrayList<String> jogadores, Map<String, String> save) {
+    System.out.println("[DEBUG] PainelTabuleiro(save) -> CONTINUANDO jogo salvo com jogadores=" + jogadores);
     this.jogadores = jogadores;
 
     model = ClueModel.getInstance();
@@ -418,6 +422,17 @@ class PainelTabuleiro extends JPanel {
         else if (nome.equals("Green"))    { greenCol   = col; greenLin   = lin; }
         else if (nome.equals("Peacock"))  { peacockCol = col; peacockLin = lin; }
         else if (nome.equals("Plum"))     { plumCol    = col; plumLin    = lin; }
+    }
+
+    // Restaura o envelope confidencial (solução da partida) para que a
+    // acusação confira corretamente após continuar um jogo salvo.
+    String envSuspeito = save.get("ENVELOPE_SUSPEITO");
+    String envArma     = save.get("ENVELOPE_ARMA");
+    String envComodo   = save.get("ENVELOPE_COMODO");
+    if (envSuspeito != null && envArma != null && envComodo != null) {
+        model.restaurarEnvelope(envSuspeito, envArma, envComodo);
+    } else {
+        System.out.println("[DEBUG] Save sem envelope confidencial — solução indisponível.");
     }
 
     // Restaura jogador atual
@@ -654,6 +669,7 @@ private int[] encontrarCelulaCômodo(Casa porta) {
     // Chamado pelo movimento automático (caminho) e pela passagem secreta
     // quando ela cair em caminho (não ocorre hoje, mas mantém o nome interno).
     private void proximoJogador() {
+        System.out.println("[DEBUG] proximoJogador() [view] -> encerrando turno atual e passando a vez");
         clickCol = -1;
         clickLin = -1;
         podeMover = false;
@@ -698,6 +714,11 @@ private int[] encontrarCelulaCômodo(Casa porta) {
     private void tratarFimDeJogo() {
         String vencedor = model.getNomeVencedor();
 
+        System.out.println(
+            "[DEBUG] tratarFimDeJogo() -> jogo encerrado. Vencedor="
+            + (vencedor == null ? "nenhum" : vencedor)
+        );
+
         if (vencedor != null) {
             JOptionPane.showMessageDialog(
                 this,
@@ -716,6 +737,12 @@ private int[] encontrarCelulaCômodo(Casa porta) {
 
         podeMover = false;
         repaint();
+
+        // Encerra o jogo logo após o fim da partida (acusação correta ou
+        // quando não restam jogadores ativos). O diálogo acima é modal, então
+        // o fechamento ocorre somente depois que o usuário confirma a mensagem.
+        System.out.println("[DEBUG] tratarFimDeJogo() -> fechando o jogo");
+        System.exit(0);
     }
 
     // =========================================================
